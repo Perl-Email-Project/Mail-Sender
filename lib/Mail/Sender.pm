@@ -14,8 +14,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK);
 $Mail::Sender::VERSION = '0.8.23';
 $Mail::Sender::ver=$Mail::Sender::VERSION;
 
-use 5.008;
-
 use strict;
 use warnings;
 no warnings 'uninitialized';
@@ -27,17 +25,17 @@ use File::Basename;
 use Encode qw(encode decode);
 use MIME::Base64;
 use MIME::QuotedPrint;
-                    # if you do not use MailFile or SendFile and only send 7BIT or 8BIT "encoded"
-                    # messages you may comment out these lines.
-                    #MIME::Base64 and MIME::QuotedPrint may be found at CPAN.
+# if you do not use MailFile or SendFile and only send 7BIT or 8BIT "encoded"
+# messages you may comment out these lines.
+#MIME::Base64 and MIME::QuotedPrint may be found at CPAN.
 
 my $TLS_notsupported;
 BEGIN {
-    eval <<'*END*'
+    eval <<END
         use IO::Socket::SSL;# qw(debug4);
         use Net::SSLeay;
         1;
-*END*
+END
     or $TLS_notsupported = $@;
 }
 
@@ -393,7 +391,7 @@ sub HOSTNOTFOUND {
 }
 
 sub SOCKFAILED {
-    $Mail::Sender::Error='socket() failed: $^E';
+    $Mail::Sender::Error="socket() failed: $^E";
     $!=5;
     return -2, $Mail::Sender::Error;
 }
