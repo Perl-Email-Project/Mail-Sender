@@ -5,6 +5,8 @@ Revision history for {{$dist->name}}
 
     - Fixed the Changes file
     - Added some git helper files for the repo
+    - Reorganized the PM files into the lib directory
+    - Auto-generate MANIFEST using MANIFEST.SKIP from here on
 
 0.8.23  2014-07-15
     - fixed problems with long subjects containing accentuated characters
