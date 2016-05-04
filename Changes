@@ -7,6 +7,7 @@ Revision history for {{$dist->name}}
     - Added some git helper files for the repo
     - Reorganized the PM files into the lib directory
     - Auto-generate MANIFEST using MANIFEST.SKIP from here on
+    - Ensure all files EOL with \n rather than any combination of \n and \r\n
 
 0.8.23  2014-07-15
     - fixed problems with long subjects containing accentuated characters
