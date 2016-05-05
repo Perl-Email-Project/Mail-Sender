@@ -1049,8 +1049,7 @@ sub initialize {
     return $self;
 }
 
-use vars qw(%CTypes);
-%CTypes = (
+our %CTypes = (
     GIF => 'image/gif',
     JPE => 'image/jpeg',
     JPEG => 'image/jpeg',
@@ -1065,9 +1064,11 @@ use vars qw(%CTypes);
 );
 
 sub GuessCType {
-    my $ext = shift;
-    $ext =~ s/^.*\.//;
-    return $CTypes{uc $ext} || 'application/octet-stream';
+    my $file = shift;
+    if ( defined $file && $file =~ /\.([^.]+)$/) {
+        return $CTypes{uc($1)} || 'application/octet-stream';
+    }
+    return 'application/octet-stream';
 }
 
 sub Connect {

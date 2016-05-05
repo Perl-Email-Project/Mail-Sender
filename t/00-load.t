@@ -17,13 +17,15 @@ can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
     qw(GuessCType)
 );
 
-{ # test username
+{
+    # test username
     my $username = Mail::Sender::getusername();
     ok($username, 'getusername: found a username');
     is(Mail::Sender::getusername(), $username, 'getusername: called a second time for state');
 }
 
-{ # test error functions
+{
+    # test error functions
     my ($num, $err);
 
     $num = undef; $err = undef;
@@ -256,6 +258,27 @@ can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
     is($num, -27, 'UNKNOWNENCODING: proper number');
     is($err, q(Unknown encoding 'crappola'), 'UNKNOWNENCODING: proper string');
 
+}
+
+{
+    # GuessCType
+    my $type = Mail::Sender::GuessCType();
+    is($type, 'application/octet-stream', 'GuessCType: empty call');
+
+    $type = Mail::Sender::GuessCType('');
+    is($type, 'application/octet-stream', 'GuessCType: empty string');
+
+    $type = Mail::Sender::GuessCType('foo.unknownsomething');
+    is($type, 'application/octet-stream', 'GuessCType: unknown extension');
+
+    $type = Mail::Sender::GuessCType('foo.gif');
+    is($type, 'image/gif', 'GuessCType: gif lowercase extension');
+
+    $type = Mail::Sender::GuessCType('foo.gIf');
+    is($type, 'image/gif', 'GuessCType: gif multicase extension');
+
+    $type = Mail::Sender::GuessCType('foo.GIF');
+    is($type, 'image/gif', 'GuessCType: gif uppercase extension');
 }
 
 done_testing();
