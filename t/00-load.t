@@ -279,6 +279,11 @@ can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
 
     $type = Mail::Sender::GuessCType('foo.GIF');
     is($type, 'image/gif', 'GuessCType: gif uppercase extension');
+
+    # Add a type
+    $Mail::Sender::CTypes{SUPERSPECIAL} = 'text/super';
+    $type = Mail::Sender::GuessCType('foo.superspecial');
+    is($type, 'text/super', 'GuessCType: superspecial added MIME type');
 }
 
 done_testing();

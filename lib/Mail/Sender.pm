@@ -1,30 +1,23 @@
-# Mail::Sender.pm version 0.8.23
-#
-# Copyright (c) 2001 Jan Krynicky <Jenda@Krynicky.cz>. All rights reserved.
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
-
-package Mail::Sender; local $^W;
-require 'Exporter.pm';
-use vars qw(@ISA @EXPORT @EXPORT_OK);
-@ISA = (Exporter);
-@EXPORT = qw();
-@EXPORT_OK = qw(@error_str GuessCType);
-
-$Mail::Sender::VERSION = '0.8.23';
-$Mail::Sender::ver=$Mail::Sender::VERSION;
+package Mail::Sender;
 
 use strict;
 use warnings;
 no warnings 'uninitialized';
 use Carp;
-use FileHandle;
-use IO::Socket::INET;
-use File::Basename;
-
 use Encode qw(encode decode);
+use File::Basename;
+use IO::Socket::INET;
 use MIME::Base64;
 use MIME::QuotedPrint;
+use Time::Local;
+
+use base 'Exporter';
+our @EXPORT = qw();
+our @EXPORT_OK = qw(@error_str GuessCType);
+
+our $VERSION = '0.900';
+$VERSION = eval $VERSION;
+
 # if you do not use MailFile or SendFile and only send 7BIT or 8BIT "encoded"
 # messages you may comment out these lines.
 #MIME::Base64 and MIME::QuotedPrint may be found at CPAN.
@@ -64,6 +57,22 @@ BEGIN {
     }
 }
 
+our $MD5_loaded = 0;
+our $debug = 0;
+our %CTypes = (
+    GIF => 'image/gif',
+    JPE => 'image/jpeg',
+    JPEG => 'image/jpeg',
+    SHTML => 'text/html',
+    SHTM => 'text/html',
+    HTML => 'text/html',
+    HTM => 'text/html',
+    TXT => 'text/plain',
+    INI => 'text/plain',
+    DOC => 'application/x-msword',
+    EML => 'message/rfc822',
+);
+
 #local IP address and name
 my $local_name =  $ENV{HOSTNAME} || $ENV{HTTP_HOST} || (gethostbyname 'localhost')[0];
 $local_name =~ s/:.*$//; # the HTTP_HOST may be set to something like "foo.bar.com:1000"
@@ -72,7 +81,6 @@ my $local_IP =  join('.',unpack('CCCC',(gethostbyname $local_name)[4]));
 #time diference to GMT - Windows will not set $ENV{'TZ'}, if you know a better way ...
 my $GMTdiff;
 
-use Time::Local;
 sub ResetGMTdiff {
     my $local = time;
     my $gm = timelocal( gmtime $local );
@@ -131,8 +139,6 @@ sub enc_xtext {
 }
 
 #IO
-use vars qw($debug);
-$debug = 0;
 
 #reads the whole SMTP response
 # converts
@@ -277,8 +283,6 @@ sub Mail::Sender::Auth::LOGIN {
     return;
 }
 
-use vars qw($MD5_loaded);
-$MD5_loaded = 0;
 sub Mail::Sender::Auth::CRAM_MD5 {
     my $self = shift();
     my $s = $self->{'socket'};
@@ -366,8 +370,7 @@ sub __Debug {
         my $handle = gensym();
         *$handle = \$socket;
         if (! ref $file) {
-            my $DEBUG = new FileHandle;
-            open $DEBUG, "> $file" or die "Cannot open the debug file '$file': $^E\n";
+            open my $DEBUG, '>', $file or die "Cannot open the debug file '$file': $^E\n";
             binmode $DEBUG;
             $DEBUG->autoflush();
             tie *$handle, 'Mail::Sender::DBIO', $socket, $DEBUG, 1;
@@ -1048,20 +1051,6 @@ sub initialize {
 
     return $self;
 }
-
-our %CTypes = (
-    GIF => 'image/gif',
-    JPE => 'image/jpeg',
-    JPEG => 'image/jpeg',
-    SHTML => 'text/html',
-    SHTM => 'text/html',
-    HTML => 'text/html',
-    HTM => 'text/html',
-    TXT => 'text/plain',
-    INI => 'text/plain',
-    DOC => 'application/x-msword',
-    EML => 'message/rfc822',
-);
 
 sub GuessCType {
     my $file = shift;
@@ -1888,8 +1877,7 @@ sub MailFile {
 
         my $code = $self->{'code'};
 
-        my $FH = new FileHandle;
-        open $FH, "<", $file
+        open my $FH, "<", $file
             or return $self->Error(FILECANTREAD($file));
         binmode $FH unless $ctype =~ m#^text/#i and $encoding =~ /Quoted[_\-]print|Base64/i;
         my $s;
@@ -2434,8 +2422,7 @@ sub SendFile {
 
         $self->{'socket'}->stop_logging("... data skipped ...") if ($self->{'debug'} and $self->{'debug_level'} == 3);
 
-        my $FH = new FileHandle;
-        open $FH, "<", $file
+        open my $FH, "<", $file
             or return $self->Error(FILECANTREAD($file));
         binmode $FH unless $fctype =~ m#^text/#i and $encoding =~ /Quoted[_\-]print|Base64/i;
 
