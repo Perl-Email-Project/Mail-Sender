@@ -24,7 +24,7 @@ $VERSION = eval $VERSION;
 
 my $TLS_notsupported;
 BEGIN {
-    eval <<END
+    eval <<'END'
         use IO::Socket::SSL;# qw(debug4);
         use Net::SSLeay;
         1;
@@ -2734,7 +2734,7 @@ sub TestServer {
 
 #====== Debuging bazmecks
 
-$debug_code = <<'*END*';
+$debug_code = <<'END';
 package Mail::Sender::DBIO;
 use IO::Handle;
 use Tie::Handle;
@@ -2805,10 +2805,9 @@ sub start_logging {
     my $self = tied(${$_[0]});
     $self->[OFF] = 0;
 }
+END
 
-*END*
-
-my $pseudo_handle_code = <<'*END*';
+my $pseudo_handle_code = <<'END';
 package Mail::Sender::IO;
 use IO::Handle;
 use Tie::Handle;
@@ -2838,7 +2837,7 @@ sub CLOSE {
         $self->[0]->Close();
     }
 }
-*END*
+END
 
 =head2 GetHandle
 
@@ -3154,7 +3153,7 @@ or
      or die "Error: $Mail::Sender::Error\n";
   my $FH = $sender->GetHandle();
   print $FH "How are you?\n\n";
-  print $FH <<'*END*';
+  print $FH <<'END';
   I've found these jokes.
 
    Doctor, I feel like a pack of cards.
@@ -3164,7 +3163,7 @@ or
    Don't talk rubbish.
 
   Hope you like'em. Jenda
-  *END*
+  END
 
   $sender->Close;
   # or
@@ -3193,14 +3192,14 @@ or
  $sender->OpenMultipart({to => 'Perl-Win32-Users@activeware.foo',
                          subject => 'Mail::Sender.pm - new module'});
  $sender->Body;
- $sender->SendEnc(<<'*END*');
+ $sender->SendEnc(<<'END');
  Here is a new module Mail::Sender.
  It provides an object based interface to sending SMTP mails.
  It uses a direct socket connection, so it doesn't need any
  additional program.
 
  Enjoy, Jenda
- *END*
+ END
  $sender->Attach(
   {description => 'Perl module Mail::Sender.pm',
    ctype => 'application/x-zip-encoded',
@@ -3214,14 +3213,14 @@ or
 
  $sender->OpenMultipart({to => 'Perl-Win32-Users@activeware.foo',
                          subject => 'Mail::Sender.pm - new version'});
- $sender->Body({ msg => <<'*END*' });
+ $sender->Body({ msg => <<'END' });
  Here is a new module Mail::Sender.
  It provides an object based interface to sending SMTP mails.
  It uses a direct socket connection, so it doesn't need any
  additional program.
 
  Enjoy, Jenda
- *END*
+ END
  $sender->Attach(
   {description => 'Perl module Mail::Sender.pm',
    ctype => 'application/x-zip-encoded',
@@ -3235,14 +3234,14 @@ or (in case you have the file contents in a scalar)
 
  $sender->OpenMultipart({to => 'Perl-Win32-Users@activeware.foo',
                          subject => 'Mail::Sender.pm - new version'});
- $sender->Body({ msg => <<'*END*' });
+ $sender->Body({ msg => <<'END' });
  Here is a new module Mail::Sender.
  It provides an object based interface to sending SMTP mails.
  It uses a direct socket connection, so it doesn't need any
  additional program.
 
  Enjoy, Jenda
- *END*
+ END
  $sender->Part(
   {description => 'Perl module Mail::Sender.pm',
    ctype => 'application/x-zip-encoded',
@@ -3259,14 +3258,14 @@ or (in case you have the file contents in a scalar)
  eval {
  (new Mail::Sender {on_errors => 'die'})
      ->OpenMultipart({smtp=> 'jenda.krynicky.cz', to => 'jenda@krynicky.cz',subject => 'Mail::Sender.pm - new version'})
-     ->Body({ msg => <<'*END*' })
+     ->Body({ msg => <<'END' })
  Here is a new module Mail::Sender.
  It provides an object based interface to sending SMTP mails.
  It uses a direct socket connection, so it doesn't need any
  additional program.
 
  Enjoy, Jenda
- *END*
+ END
      ->Attach({
          description => 'Perl module Mail::Sender.pm',
          ctype => 'application/x-zip-encoded',
@@ -3434,17 +3433,17 @@ Please keep in mind that the image name is unimportant, it's the Content-ID what
             multipart => 'mixed',
         })
             ->Part({ctype => 'multipart/alternative'})
-                ->Part({ ctype => 'text/plain', disposition => 'NONE', msg => <<'*END*' })
+                ->Part({ ctype => 'text/plain', disposition => 'NONE', msg => <<'END' })
     A long
     mail
     message.
-    *END*
-                ->Part({ctype => 'text/html', disposition => 'NONE', msg => <<'*END*'})
+    END
+                ->Part({ctype => 'text/html', disposition => 'NONE', msg => <<'END'})
     <html><body><h1>A long</h1><p align=center>
     mail
     message.
     </p></body></html>
-    *END*
+    END
             ->EndPart("multipart/alternative")
         ->Close();
     } or print "Error sending mail: $Mail::Sender::Error\n";
@@ -3462,18 +3461,18 @@ Please keep in mind that the image name is unimportant, it's the Content-ID what
             multipart => 'related',
         })
             ->Part({ctype => 'multipart/alternative'})
-                ->Part({ ctype => 'text/plain', disposition => 'NONE', msg => <<'*END*' })
+                ->Part({ ctype => 'text/plain', disposition => 'NONE', msg => <<'END' })
     A long
     mail
     message.
-    *END*
-                ->Part({ctype => 'text/html', disposition => 'NONE', msg => <<'*END*'})
+    END
+                ->Part({ctype => 'text/html', disposition => 'NONE', msg => <<'END'})
     <html><body><h1>A long</h1><p align=center>
     mail
     message.
     <img src="cid:img1">
     </p></body></html>
-    *END*
+    END
             ->EndPart("multipart/alternative")
             ->Attach({
                 description => 'ed\'s jpg',
@@ -3508,11 +3507,11 @@ If this doesn't work with your mail client, please let me know and we might find
  $sender = new Mail::Sender {from => 'script@krynicky.cz',smtp => 'mail.krynicky.czX'};
  $sender->OpenMultipart({to=> 'jenda@krynicky.czX',subject=> 'test CGI attach'});
  $sender->Body();
- $sender->Send(<<"*END*");
+ $sender->Send(<<'END');
  This is just a test of mail with an uploaded file.
 
  Jenda
- *END*
+ END
  $sender->Attach({
     encoding => 'Base64',
     description => $filename,

@@ -7,14 +7,15 @@ BEGIN {
 }
 
 # check that we can do all static functions
-can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
-    qw(ResetGMTdiff getusername),
+can_ok('Mail::Sender',
+    qw(enc_base64 enc_qp enc_plain enc_xtext),
+    qw(ResetGMTdiff GuessCType getusername),
+    # The various error message private functions
     qw(_HOSTNOTFOUND _CONNFAILED _SERVNOTAVAIL _COMMERROR _USERUNKNOWN),
     qw(_TRANSFAILED _TOEMPTY _NOMSG _NOFILE _FILENOTFOUND _NOTMULTIPART _SITEERROR),
     qw(_NOTCONNECTED _NOSERVER _NOFROMSPECIFIED _INVALIDAUTH _LOGINERROR _UNKNOWNAUTH),
     qw(_ALLRECIPIENTSBAD _FILECANTREAD _DEBUGFILE _STARTTLS _IO_SOCKET_SSL),
     qw(_TLS_UNSUPPORTED_BY_ME _TLS_UNSUPPORTED_BY_SERVER _UNKNOWNENCODING),
-    qw(GuessCType)
 );
 
 {
@@ -22,6 +23,32 @@ can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
     my $username = Mail::Sender::getusername();
     ok($username, 'getusername: found a username');
     is(Mail::Sender::getusername(), $username, 'getusername: called a second time for state');
+}
+
+{
+    # GuessCType
+    my $type = Mail::Sender::GuessCType();
+    is($type, 'application/octet-stream', 'GuessCType: empty call');
+
+    $type = Mail::Sender::GuessCType('');
+    is($type, 'application/octet-stream', 'GuessCType: empty string');
+
+    $type = Mail::Sender::GuessCType('foo.unknownsomething');
+    is($type, 'application/octet-stream', 'GuessCType: unknown extension');
+
+    $type = Mail::Sender::GuessCType('foo.gif');
+    is($type, 'image/gif', 'GuessCType: gif lowercase extension');
+
+    $type = Mail::Sender::GuessCType('foo.gIf');
+    is($type, 'image/gif', 'GuessCType: gif multicase extension');
+
+    $type = Mail::Sender::GuessCType('foo.GIF');
+    is($type, 'image/gif', 'GuessCType: gif uppercase extension');
+
+    # Add a type
+    $Mail::Sender::CTypes{SUPERSPECIAL} = 'text/super';
+    $type = Mail::Sender::GuessCType('foo.superspecial');
+    is($type, 'text/super', 'GuessCType: superspecial added MIME type');
 }
 
 {
@@ -258,32 +285,6 @@ can_ok('Mail::Sender', qw(enc_base64 enc_qp enc_plain enc_xtext),
     is($num, -27, '_UNKNOWNENCODING: proper number');
     is($err, q(Unknown encoding 'crappola'), '_UNKNOWNENCODING: proper string');
 
-}
-
-{
-    # GuessCType
-    my $type = Mail::Sender::GuessCType();
-    is($type, 'application/octet-stream', 'GuessCType: empty call');
-
-    $type = Mail::Sender::GuessCType('');
-    is($type, 'application/octet-stream', 'GuessCType: empty string');
-
-    $type = Mail::Sender::GuessCType('foo.unknownsomething');
-    is($type, 'application/octet-stream', 'GuessCType: unknown extension');
-
-    $type = Mail::Sender::GuessCType('foo.gif');
-    is($type, 'image/gif', 'GuessCType: gif lowercase extension');
-
-    $type = Mail::Sender::GuessCType('foo.gIf');
-    is($type, 'image/gif', 'GuessCType: gif multicase extension');
-
-    $type = Mail::Sender::GuessCType('foo.GIF');
-    is($type, 'image/gif', 'GuessCType: gif uppercase extension');
-
-    # Add a type
-    $Mail::Sender::CTypes{SUPERSPECIAL} = 'text/super';
-    $type = Mail::Sender::GuessCType('foo.superspecial');
-    is($type, 'text/super', 'GuessCType: superspecial added MIME type');
 }
 
 done_testing();
