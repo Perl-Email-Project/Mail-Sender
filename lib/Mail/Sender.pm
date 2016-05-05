@@ -2,7 +2,7 @@ package Mail::Sender;
 
 use strict;
 use warnings;
-no warnings 'uninitialized';
+# no warnings 'uninitialized';
 use Carp;
 use Encode qw(encode decode);
 use File::Basename;
@@ -212,7 +212,7 @@ sub say_helo {
     my $res = send_cmd $s, "EHLO $self->{'client'}";
     if ($res !~  /^[123]/) {
         $res = send_cmd $s, "HELO $self->{'client'}";
-        if ($res !~ /^[123]/) { return $self->Error(COMMERROR($_));}
+        if ($res !~ /^[123]/) { return $self->Error(_COMMERROR($_));}
         return;
     }
 
@@ -244,7 +244,7 @@ sub login {
     my $self = shift();
     my $auth = uc( $self->{'auth'}) || 'LOGIN';
     if (! $self->{'auth_protocols'}->{$auth}) {
-        return $self->Error(INVALIDAUTH($auth));
+        return $self->Error(_INVALIDAUTH($auth));
     }
 
     $self->{'authid'} = $self->{'username'}
@@ -264,21 +264,21 @@ sub Mail::Sender::Auth::LOGIN {
     my $s = $self->{'socket'};
 
     $_ = send_cmd $s, 'AUTH LOGIN';
-    if (!/^[123]/) { return $self->Error(INVALIDAUTH('LOGIN', $_)); }
+    if (!/^[123]/) { return $self->Error(_INVALIDAUTH('LOGIN', $_)); }
 
     if ($self->{auth_encoded}) {
         # I assume the username and password had been base64 encoded already!
         $_ = send_cmd $s, $self->{'authid'};
-        if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+        if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
 
         $_ = send_cmd $s, $self->{'authpwd'};
-        if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+        if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     } else {
         $_ = send_cmd $s, &encode_base64($self->{'authid'}, '');
-        if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+        if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
 
         $_ = send_cmd $s, &encode_base64($self->{'authpwd'}, '');
-        if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+        if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     }
     return;
 }
@@ -288,7 +288,7 @@ sub Mail::Sender::Auth::CRAM_MD5 {
     my $s = $self->{'socket'};
 
     $_ = send_cmd $s, "AUTH CRAM-MD5";
-    if (!/^[123]/) { return $self->Error(INVALIDAUTH('CRAM-MD5', $_)); }
+    if (!/^[123]/) { return $self->Error(_INVALIDAUTH('CRAM-MD5', $_)); }
     my $stamp = $1 if /^\d{3}\s+(.*)$/;
 
     unless ($MD5_loaded) {
@@ -304,7 +304,7 @@ sub Mail::Sender::Auth::CRAM_MD5 {
     my $hmac = hmac_md5_hex($decoded_stamp, $secret);
     my $answer = encode_base64($user . ' ' . $hmac, '');
     $_ = send_cmd $s, $answer;
-    if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     return;
 }
 
@@ -313,10 +313,10 @@ sub Mail::Sender::Auth::PLAIN {
     my $s = $self->{'socket'};
 
     $_ = send_cmd $s, "AUTH PLAIN";
-    if (!/^[123]/) { return $self->Error(INVALIDAUTH('PLAIN', $_)); }
+    if (!/^[123]/) { return $self->Error(_INVALIDAUTH('PLAIN', $_)); }
 
     $_ = send_cmd $s, encode_base64("\000" . $self->{'authid'} . "\000" . $self->{'authpwd'}, '');
-    if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     return;
 }
 
@@ -332,7 +332,7 @@ sub Mail::Sender::Auth::NTLM {
     my $s = $self->{'socket'};
 
     $_ = send_cmd $s, "AUTH NTLM";
-    if (!/^[123]/) { return $self->Error(INVALIDAUTH('NTLM', $_)); }
+    if (!/^[123]/) { return $self->Error(_INVALIDAUTH('NTLM', $_)); }
 
     Authen::NTLM::ntlm_reset();
     Authen::NTLM::ntlm_user($self->{'authid'});
@@ -341,10 +341,10 @@ sub Mail::Sender::Auth::NTLM {
         if defined $self->{'authdomain'};
 
     $_ = send_cmd $s, Authen::NTLM::ntlm();
-    if (!/^3\d\d (.*)$/s) { return $self->Error(LOGINERROR($_)); }
+    if (!/^3\d\d (.*)$/s) { return $self->Error(_LOGINERROR($_)); }
     my $response = $1;
     $_ = send_cmd $s, Authen::NTLM::ntlm($response);
-    if (!/^[123]/) { return $self->Error(LOGINERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     return;
 }}
 
@@ -355,7 +355,7 @@ sub Mail::Sender::Auth::AUTOLOAD {
     send_cmd $s, "QUIT";
     close $s;
     delete $self->{'socket'};
-    return $self->Error( UNKNOWNAUTH($auth));
+    return $self->Error( _UNKNOWNAUTH($auth));
 }
 
 my $debug_code;
@@ -387,174 +387,185 @@ sub __Debug {
 
 #internale
 
-sub HOSTNOTFOUND {
+sub _HOSTNOTFOUND {
+    my $msg = shift || '';
     $!=2;
-    $Mail::Sender::Error="The SMTP server $_[0] was not found";
+    $Mail::Sender::Error="The SMTP server $msg was not found";
     return -1, $Mail::Sender::Error;
 }
 
-sub SOCKFAILED {
-    $Mail::Sender::Error="socket() failed: $^E";
+sub _CONNFAILED {
     $!=5;
-    return -2, $Mail::Sender::Error;
-}
-
-sub CONNFAILED {
     $Mail::Sender::Error="connect() failed: $^E";
-    $!=5;
     return -3, $Mail::Sender::Error;
 }
 
-sub SERVNOTAVAIL {
+sub _SERVNOTAVAIL {
+    my $msg = shift || '';
     $!=40;
-    $Mail::Sender::Error="Service not available. " . ($_[0] ? "Reply: $_[0]" : "Server closed the connection unexpectedly");
+    $Mail::Sender::Error="Service not available. " . ($msg ? "Reply: $msg" : "Server closed the connection unexpectedly");
     return -4, $Mail::Sender::Error;
 }
 
-sub COMMERROR {
+sub _COMMERROR {
+    my $msg = shift || '';
     $!=5;
-    if ($_[0] eq '') {
+    if ($msg eq '') {
         $Mail::Sender::Error="No response from server";
     } else {
-        $Mail::Sender::Error="Server error: $_[0]";
+        $Mail::Sender::Error="Server error: $msg";
     }
     return -5, $Mail::Sender::Error;
 }
 
-sub USERUNKNOWN {
+sub _USERUNKNOWN {
+    my $user = shift || '';
+    my $host = shift || '';
+    my $err = shift || '';
     $!=2;
-    if ($_[2] and $_[2] !~ /Local user/i) {
-        my $err= $_[2];
+    if ($err and $err !~ /Local user/i) {
         $err =~ s/^\d+\s*//;
         $err =~ s/\s*$//s;
         $err ||= "Error";
-        $Mail::Sender::Error="$err for \"$_[0]\" on host \"$_[1]\"";
+        $Mail::Sender::Error="$err for \"$user\" on host \"$host\"";
     } else {
-        $Mail::Sender::Error="Local user \"$_[0]\" unknown on host \"$_[1]\"";
+        $Mail::Sender::Error="Local user \"$user\" unknown on host \"$host\"";
     }
     return -6, $Mail::Sender::Error;
 }
 
-sub TRANSFAILED {
+sub _TRANSFAILED {
+    my $msg = shift || '';
     $!=5;
-    $Mail::Sender::Error="Transmission of message failed ($_[0])";
+    $Mail::Sender::Error="Transmission of message failed ($msg)";
     return -7, $Mail::Sender::Error;
 }
 
-sub TOEMPTY {
+sub _TOEMPTY {
     $!=14;
     $Mail::Sender::Error="Argument \$to empty";
     return -8, $Mail::Sender::Error;
 }
 
-sub NOMSG {
+sub _NOMSG {
     $!=22;
     $Mail::Sender::Error="No message specified";
     return -9, $Mail::Sender::Error;
 }
 
-sub NOFILE {
+sub _NOFILE {
     $!=22;
     $Mail::Sender::Error="No file name specified";
     return -10, $Mail::Sender::Error;
 }
 
-sub FILENOTFOUND {
+sub _FILENOTFOUND {
+    my $msg = shift || '';
     $!=2;
-    $Mail::Sender::Error="File \"$_[0]\" not found";
+    $Mail::Sender::Error="File \"$msg\" not found";
     return -11, $Mail::Sender::Error;
 }
 
-sub NOTMULTIPART {
+sub _NOTMULTIPART {
+    my $msg = shift || '';
     $!=40;
-    $Mail::Sender::Error="$_[0] not available in singlepart mode";
+    $Mail::Sender::Error="$msg not available in singlepart mode";
     return -12, $Mail::Sender::Error;
 }
 
-sub SITEERROR {
+sub _SITEERROR {
     $!=15;
     $Mail::Sender::Error="Site specific error";
     return -13, $Mail::Sender::Error;
 }
 
-sub NOTCONNECTED {
+sub _NOTCONNECTED {
     $!=1;
     $Mail::Sender::Error="Connection not established";
     return -14, $Mail::Sender::Error;
 }
 
-sub NOSERVER {
+sub _NOSERVER {
     $!=22;
     $Mail::Sender::Error="No SMTP server specified";
     return -15, $Mail::Sender::Error;
 }
 
-sub NOFROMSPECIFIED {
+sub _NOFROMSPECIFIED {
     $!=22;
     $Mail::Sender::Error="No From: address specified";
     return -16, $Mail::Sender::Error;
 }
 
-sub INVALIDAUTH {
+sub _INVALIDAUTH {
+    my $proto = shift || '';
+    my $res = shift || '';
     $!=22;
-    $Mail::Sender::Error="Authentication protocol $_[0] is not accepted by the server";
-    $Mail::Sender::Error.=",\nresponse: $_[1]" if defined $_[1];
+    $Mail::Sender::Error="Authentication protocol $proto is not accepted by the server";
+    $Mail::Sender::Error.=",\nresponse: $res" if $res;
     return -17, $Mail::Sender::Error;
 }
 
-sub LOGINERROR {
+sub _LOGINERROR {
     $!=22;
     $Mail::Sender::Error="Login not accepted";
     return -18, $Mail::Sender::Error;
 }
 
-sub UNKNOWNAUTH {
+sub _UNKNOWNAUTH {
+    my $msg = shift || '';
     $!=22;
-    $Mail::Sender::Error="Authentication protocol $_[0] is not implemented by Mail::Sender";
+    $Mail::Sender::Error="Authentication protocol $msg is not implemented by Mail::Sender";
     return -19, $Mail::Sender::Error;
 }
 
-sub ALLRECIPIENTSBAD {
+sub _ALLRECIPIENTSBAD {
     $!=2;
     $Mail::Sender::Error="All recipients are bad";
     return -20, $Mail::Sender::Error;
 }
 
-sub FILECANTREAD {
-    $Mail::Sender::Error="File \"$_[0]\" cannot be read: $^E";
+sub _FILECANTREAD {
+    my $msg = shift || '';
+    $Mail::Sender::Error="File \"$msg\" cannot be read: $^E";
     return -21, $Mail::Sender::Error;
 }
 
-sub DEBUGFILE {
-    $Mail::Sender::Error=$_[0];
+sub _DEBUGFILE {
+    $Mail::Sender::Error=shift;
     return -22, $Mail::Sender::Error;
 }
 
-sub STARTTLS {
-    $Mail::Sender::Error="STARTTLS failed: $_[0] $_[1]";
+sub _STARTTLS {
+    my $msg = shift || '';
+    my $two = shift || '';
     $!=5;
+    $Mail::Sender::Error="STARTTLS failed: $msg $two";
     return -23, $Mail::Sender::Error;
 }
 
-sub IO_SOCKET_SSL {
-    $Mail::Sender::Error="IO::Socket::SSL->start_SSL failed: $_[0]";
+sub _IO_SOCKET_SSL {
+    my $msg = shift || '';
     $!=5;
+    $Mail::Sender::Error="IO::Socket::SSL->start_SSL failed: $msg";
     return -24, $Mail::Sender::Error;
 }
 
-sub TLS_UNSUPPORTED_BY_ME {
-    $Mail::Sender::Error="TLS unsupported by the script: $_[0]";
+sub _TLS_UNSUPPORTED_BY_ME {
+    my $msg = shift || '';
     $!=5;
+    $Mail::Sender::Error="TLS unsupported by the script: $msg";
     return -25, $Mail::Sender::Error;
 }
-sub TLS_UNSUPPORTED_BY_SERVER {
-    $Mail::Sender::Error="TLS unsupported by server";
+sub _TLS_UNSUPPORTED_BY_SERVER {
     $!=5;
+    $Mail::Sender::Error="TLS unsupported by server";
     return -26, $Mail::Sender::Error;
 }
-sub UNKNOWNENCODING {
-    $Mail::Sender::Error="Unknown encoding '$_[0]'";
+sub _UNKNOWNENCODING {
+    my $msg = shift || '';
     $!=5;
+    $Mail::Sender::Error="Unknown encoding '$msg'";
     return -27, $Mail::Sender::Error;
 }
 
@@ -1041,7 +1052,7 @@ sub initialize {
         $self->{'smtp'} =~ s/\s+$//g;
 
         $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-        if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+        if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
         $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s); # Untaint
     }
 
@@ -1068,7 +1079,7 @@ sub Connect {
         PeerPort    => $self->{'port'},
         Proto       => "tcp",
         Timeout     => ($self->{'timeout'} || 120),
-    ) or return $self->Error(CONNFAILED);
+    ) or return $self->Error(_CONNFAILED);
 
     $s->autoflush(1);
     binmode($s);
@@ -1077,11 +1088,11 @@ sub Connect {
         eval {
             $s = __Debug( $s, $self->{'debug'});
         }
-        or return $self->Error(DEBUGFILE($@));
+        or return $self->Error(_DEBUGFILE($@));
         $self->{'debug_level'} = 4 unless defined $self->{'debug_level'};
     }
 
-    $_ = get_response($s); if (not $_ or !/^[123]/) { return $self->Error(SERVNOTAVAIL($_)); }
+    $_ = get_response($s); if (not $_ or !/^[123]/) { return $self->Error(_SERVNOTAVAIL($_)); }
     $self->{'server'} = substr $_, 4;
     $self->{'!greeting'} = $_;
 
@@ -1099,7 +1110,7 @@ sub Connect {
         my $res=send_cmd $s, "STARTTLS";
         my ($code,$text)=split(/\s/,$res,2);
 
-        return $self->Error(STARTTLS($code,$text)) if ($code != 220);
+        return $self->Error(_STARTTLS($code,$text)) if ($code != 220);
 
         my %ssl_options = (
             SSL_version =>'TLSv1',
@@ -1124,7 +1135,7 @@ sub Connect {
             $res = IO::Socket::SSL->start_SSL( $s, %ssl_options)
         }
         if (! $res) {
-            return $self->Error(IO_SOCKET_SSL(IO::Socket::SSL::errstr()));
+            return $self->Error(_IO_SOCKET_SSL(IO::Socket::SSL::errstr()));
         }
 
         {
@@ -1133,9 +1144,9 @@ sub Connect {
         }
     } elsif ($self->{tls_required}) {
         if ($TLS_notsupported) {
-            return $self->Error(TLS_UNSUPPORTED_BY_ME($TLS_notsupported))
+            return $self->Error(_TLS_UNSUPPORTED_BY_ME($TLS_notsupported))
         } else {
-            return $self->Error(TLS_UNSUPPORTED_BY_SERVER())
+            return $self->Error(_TLS_UNSUPPORTED_BY_SERVER())
         }
     }
 
@@ -1312,7 +1323,7 @@ sub Open {
 
     $self->{'boundary'} =~ tr/=/-/ if defined $changed{'boundary'};
 
-    return $self->Error( NOFROMSPECIFIED) unless defined $self->{'from'};
+    return $self->Error( _NOFROMSPECIFIED) unless defined $self->{'from'};
 
     if ($changed{'from'}) {
         $self->{'fromaddr'} = $self->{'from'};
@@ -1329,7 +1340,7 @@ sub Open {
         $self->{'smtp'} =~ s/^\s+//g; # remove spaces around $smtp
         $self->{'smtp'} =~ s/\s+$//g;
         $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-        if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+        if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
         $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s); # Untaint
         if (exists $self->{'socket'}) {
             my $s = $self->{'socket'};
@@ -1340,13 +1351,13 @@ sub Open {
 
     $self->_prepare_headers() if ($changed{'headers'});
 
-    if (!$self->{'to'}) { return $self->Error(TOEMPTY); }
+    if (!$self->{'to'}) { return $self->Error(_TOEMPTY); }
 
-    return $self->Error(NOSERVER) unless defined $self->{'smtp'};
-#    if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+    return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
+#    if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
 
     if ($Mail::Sender::{'SiteHook'} and !$self->SiteHook()) {
-        return defined $self->{'error'} ? $self->{'error'} : $self->{'error'}=&SITEERROR;
+        return defined $self->{'error'} ? $self->{'error'} : $self->{'error'}=_SITEERROR();
     }
 
     my $s = $self->{'socket'} || $self->Connect();
@@ -1354,7 +1365,7 @@ sub Open {
     $self->{'socket'} = $s;
 
     $_ = send_cmd $s, "MAIL FROM:<$self->{'fromaddr'}>$self->{esmtp}{_MAIL_FROM}";
-    if (!/^[123]/) { return $self->Error(COMMERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
 
     { local $^W;
         if ($self->{'skip_bad_recipients'}) {
@@ -1377,7 +1388,7 @@ sub Open {
             $self->{'skipped_recipients'} = \%failed
                 if %failed;
             if ($good_count == 0) {
-                return $self->Error(ALLRECIPIENTSBAD);
+                return $self->Error(_ALLRECIPIENTSBAD);
             }
         } else {
             foreach my $addr ( @{$self->{'to_list'}}, @{$self->{'cc_list'}}, @{$self->{'bcc_list'}}) {
@@ -1387,13 +1398,13 @@ sub Open {
                     $_ = send_cmd $s, "RCPT TO:<$addr>$self->{esmtp}{_RCPT_TO}";
                 }
                 if (!/^[123]/) {
-                    return $self->Error(USERUNKNOWN($addr, $self->{'smtp'}, $_)); }
+                    return $self->Error(_USERUNKNOWN($addr, $self->{'smtp'}, $_)); }
             }
         }
     }
 
     $_ = send_cmd $s, "DATA";
-    if (!/^[123]/) { return $self->Error(COMMERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
 
     $self->{'socket'}->stop_logging("\x0D\x0A... message headers and data skipped ...") if ($self->{'debug'} and $self->{'debug_level'} <= 1);
     $self->{'_data'} = 1;
@@ -1417,7 +1428,7 @@ sub Open {
             } elsif ($self->{'encoding'} =~ /^[78]bit$/i) {
                 $self->{'code'} = enc_plain($self->{charset})
             } else {
-                return $self->Error(UNKNOWNENCODING($self->{'encoding'}));
+                return $self->Error(_UNKNOWNENCODING($self->{'encoding'}));
             }
         }
     }
@@ -1571,7 +1582,7 @@ sub OpenMultipart {
 
     $self->_prepare_headers() if ($changed{'headers'});
 
-    return $self->Error( NOFROMSPECIFIED) unless defined $self->{'from'};
+    return $self->Error( _NOFROMSPECIFIED) unless defined $self->{'from'};
     if ($changed{'from'}) {
         $self->{'fromaddr'} = $self->{'from'};
         $self->{'fromaddr'} =~ s/.*<([^\s]*?)>/$1/; # get from email address
@@ -1587,7 +1598,7 @@ sub OpenMultipart {
         $self->{'smtp'} =~ s/^\s+//g; # remove spaces around $smtp
         $self->{'smtp'} =~ s/\s+$//g;
         $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-        if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+        if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
         $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s); # Untaint
         if (exists $self->{'socket'}) {
             my $s = $self->{'socket'};
@@ -1596,13 +1607,13 @@ sub OpenMultipart {
         }
     }
 
-    if (!$self->{'to'}) { return $self->Error(TOEMPTY); }
+    if (!$self->{'to'}) { return $self->Error(_TOEMPTY); }
 
-    return $self->Error(NOSERVER) unless defined $self->{'smtp'};
-#    if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+    return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
+#    if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
 
     if ($Mail::Sender::{'SiteHook'} and !$self->SiteHook()) {
-        return defined $self->{'error'} ? $self->{'error'} : $self->{'error'}=&SITEERROR;
+        return defined $self->{'error'} ? $self->{'error'} : $self->{'error'}=_SITEERROR();
     }
 
     my $s = $self->{'socket'} || $self->Connect();
@@ -1610,7 +1621,7 @@ sub OpenMultipart {
     $self->{'socket'} = $s;
 
     $_ = send_cmd $s, "MAIL FROM:<$self->{'fromaddr'}>$self->{esmtp}{_MAIL_FROM}";
-    if (!/^[123]/) { return $self->Error(COMMERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
 
     { local $^W;
         if ($self->{'skip_bad_recipients'}) {
@@ -1632,7 +1643,7 @@ sub OpenMultipart {
             $self->{'skipped_recipients'} = \%failed
                 if %failed;
             if ($good_count == 0) {
-                return $self->Error(ALLRECIPIENTSBAD);
+                return $self->Error(_ALLRECIPIENTSBAD);
             }
         } else {
             foreach my $addr ( @{$self->{'to_list'}}, @{$self->{'cc_list'}}, @{$self->{'bcc_list'}}) {
@@ -1642,14 +1653,14 @@ sub OpenMultipart {
                     $_ = send_cmd $s, "RCPT TO:<$addr>$self->{esmtp}{_RCPT_TO}";
                 }
                 if (!/^[123]/) {
-                    return $self->Error(USERUNKNOWN($addr, $self->{'smtp'}, $_));
+                    return $self->Error(_USERUNKNOWN($addr, $self->{'smtp'}, $_));
                 }
             }
         }
     }
 
     $_ = send_cmd $s, "DATA";
-    if (!/^[123]/) { return $self->Error(COMMERROR($_)); }
+    if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
 
     $self->{'socket'}->stop_logging("\x0D\x0A... message headers and data skipped ...") if ($self->{'debug'} and $self->{'debug_level'} <= 1);
     $self->{'_data'} = 1;
@@ -1770,7 +1781,7 @@ sub MailMsg {
     } else {
         $msg = pop;
     }
-    return $self->Error(NOMSG) unless $msg;
+    return $self->Error(_NOMSG) unless $msg;
 
     if (ref $self->Open(@_)
         and
@@ -1836,8 +1847,8 @@ sub MailFile {
         $file = pop;
         $msg = pop;
     }
-    return $self->Error(NOMSG) unless $msg;
-    return $self->Error(NOFILE) unless $file;
+    return $self->Error(_NOMSG) unless $msg;
+    return $self->Error(_NOFILE) unless $file;
 
     if (ref $file eq 'ARRAY') {
         @files=@$file;
@@ -1847,7 +1858,7 @@ sub MailFile {
         @files = ($file);
     }
     foreach $file (@files) {
-        return $self->Error(FILENOTFOUND($file)) unless ($file =~ /^&/ or -e $file);
+        return $self->Error(_FILENOTFOUND($file)) unless ($file =~ /^&/ or -e $file);
     }
 
     ref $self->OpenMultipart($hash ? $hash : @_)
@@ -1878,7 +1889,7 @@ sub MailFile {
         my $code = $self->{'code'};
 
         open my $FH, "<", $file
-            or return $self->Error(FILECANTREAD($file));
+            or return $self->Error(_FILECANTREAD($file));
         binmode $FH unless $ctype =~ m#^text/#i and $encoding =~ /Quoted[_\-]print|Base64/i;
         my $s;
         $s = $self->{'socket'};
@@ -1980,7 +1991,7 @@ sub SendEnc {
         unless defined $code;
     my $s;
     $s = $self->{'socket'}
-        or return $self->Error(NOTCONNECTED);
+        or return $self->Error(_NOTCONNECTED);
     if (defined $self->{'chunk_size'}) {
         my $str;
         my $chunk = $self->{'chunk_size'};
@@ -2051,7 +2062,7 @@ sub SendEx {
     my $self = shift;
     my $s;
     $s = $self->{'socket'}
-        or return $self->Error(NOTCONNECTED);
+        or return $self->Error(_NOTCONNECTED);
     my $str;my @data = @_;
     foreach $str (@data) {
         $str =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
@@ -2152,7 +2163,7 @@ Returns the Mail::Sender object if successful, negative error code if not.
 sub Part {
     my $self = shift;
     local $_;
-    if (! $self->{'multipart'}) { return $self->Error(NOTMULTIPART("\$sender->Part()")); }
+    if (! $self->{'multipart'}) { return $self->Error(_NOTMULTIPART("\$sender->Part()")); }
     $self->EndPart();
 
     my ($description, $ctype, $encoding, $disposition, $content_id, $msg, $charset);
@@ -2181,7 +2192,7 @@ sub Part {
 
     my $s;
     $s = $self->{'socket'}
-        or return $self->Error(NOTCONNECTED);
+        or return $self->Error(_NOTCONNECTED);
 
     undef $self->{'chunk_size'};
     if ($encoding =~ /Base64/i) {
@@ -2241,7 +2252,7 @@ sub Body {
         # ->Body() has no meanin in singlepart messages
         if (@_) {
             # they called it with some parameters? Too late for them, let's scream.
-            return $self->Error(NOTMULTIPART("\$sender->Body()"));
+            return $self->Error(_NOTMULTIPART("\$sender->Body()"));
         } else {
             # $sender->Body() ... OK, let's ignore it.
             return $self;
@@ -2335,8 +2346,8 @@ Returns the Mail::Sender object if successful, negative error code if not.
 sub SendFile {
     my $self = shift;
     local $_;
-    if (! $self->{'multipart'}) { return $self->Error(NOTMULTIPART("\$sender->SendFile()")); }
-    if (! $self->{'socket'}) { return $self->Error(NOTCONNECTED); }
+    if (! $self->{'multipart'}) { return $self->Error(_NOTMULTIPART("\$sender->SendFile()")); }
+    if (! $self->{'socket'}) { return $self->Error(_NOTCONNECTED); }
 
     my ($description, $ctype, $encoding, $disposition, $file, $content_id, @files);
     if (ref $_[0] eq 'HASH') {
@@ -2350,7 +2361,7 @@ sub SendFile {
     } else {
         ($description, $ctype, $encoding, $disposition, $file, $content_id) = @_;
     }
-    return ($self->{'error'}=NOFILE) unless $file;
+    return ($self->{'error'}=_NOFILE) unless $file;
 
     if (ref $file eq 'ARRAY') {
         @files=@$file;
@@ -2360,7 +2371,7 @@ sub SendFile {
         @files = ($file);
     }
     foreach $file (@files) {
-        return $self->Error(FILENOTFOUND($file)) unless ($file =~ /^&/ or -e $file);
+        return $self->Error(_FILENOTFOUND($file)) unless ($file =~ /^&/ or -e $file);
     }
 
     $disposition = "attachment; filename=*" unless defined $disposition;
@@ -2423,14 +2434,14 @@ sub SendFile {
         $self->{'socket'}->stop_logging("... data skipped ...") if ($self->{'debug'} and $self->{'debug_level'} == 3);
 
         open my $FH, "<", $file
-            or return $self->Error(FILECANTREAD($file));
+            or return $self->Error(_FILECANTREAD($file));
         binmode $FH unless $fctype =~ m#^text/#i and $encoding =~ /Quoted[_\-]print|Base64/i;
 
         my $mychunksize = $chunksize;
         $mychunksize = $chunksize64 if lc($encoding) eq "base64";
         my $s;
         $s = $self->{'socket'}
-            or return $self->Error(NOTCONNECTED);
+            or return $self->Error(_NOTCONNECTED);
         while (read $FH, $cnt, $mychunksize) {
             print $s (&$code($cnt));
         }
@@ -2462,7 +2473,7 @@ sub EndPart {
     my $s;
     my $LN = "\x0D\x0A";
     $s = $self->{'socket'}
-        or return $self->Error(NOTCONNECTED);
+        or return $self->Error(_NOTCONNECTED);
     # flush the buffer (if it contains anything)
     if ($self->{'_buffer'}) { # used only for base64
         my $code = $self->{'code'};
@@ -2541,7 +2552,7 @@ sub Close {
         $self->{'socket'}->start_logging() if ($self->{'debug'});
         print $s "\r\n.\r\n" ;
         $self->{'_data'} = 0;
-        $_ = get_response($s); if (/^[45]\d* (.*)$/) { return $self->Error(TRANSFAILED($1)); }
+        $_ = get_response($s); if (/^[45]\d* (.*)$/) { return $self->Error(_TRANSFAILED($1)); }
         $self->{message_response} = $_;
     }
 
@@ -2550,7 +2561,7 @@ sub Close {
 
     if ($_[0] or !$self->{'keepconnection'}) {
         $_ = send_cmd $s, "QUIT";
-        if (!/^[123]/) { return $self->Error(COMMERROR($_)); }
+        if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
         close $s;
         delete $self->{'socket'};
         delete $self->{'debug'};
@@ -2575,7 +2586,7 @@ sub Cancel {
     my $self = shift;
     my $s;
     $s = $self->{'socket'}
-        or return $self->Error(NOTCONNECTED);
+        or return $self->Error(_NOTCONNECTED);
     close $s;
     delete $self->{'socket'};
     delete $self->{'error'};
@@ -2628,7 +2639,7 @@ sub QueryAuthProtocols {
             $self->{'smtp'} =~ s/^\s+//g; # remove spaces around $smtp
             $self->{'smtp'} =~ s/\s+$//g;
             $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-            if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+            if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
             $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s); # Untaint
         }
     } elsif ($self =~ /::/) { # Mail::Sender->QueryAuthProtocols('the.server.com')
@@ -2641,18 +2652,18 @@ sub QueryAuthProtocols {
         return unless ref $self;
     }
 
-    return $self->Error(NOSERVER) unless defined $self->{'smtp'};
+    return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
 
     my $s = IO::Socket::INET->new(
         PeerHost    => $self->{'smtp'},
         PeerPort    => $self->{'port'},
         Proto       => "tcp",
         Timeout     => $self->{'timeout'} || 120,
-    ) or return $self->Error(CONNFAILED);
+    ) or return $self->Error(_CONNFAILED);
 
     $s->autoflush(1);
 
-    $_ = get_response($s); if (not $_ or !/^[123]/) { return $self->Error(SERVNOTAVAIL($_)); }
+    $_ = get_response($s); if (not $_ or !/^[123]/) { return $self->Error(_SERVNOTAVAIL($_)); }
     $self->{'server'} = substr $_, 4;
 
     {    my $res = $self->say_helo($s);
@@ -2689,7 +2700,7 @@ sub TestServer {
             $self->{'smtp'} =~ s/^\s+//g; # remove spaces around $smtp
             $self->{'smtp'} =~ s/\s+$//g;
             $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-            if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+            if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
             $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s); # Untaint
         }
         $self->{'on_errors'} = 'die';
@@ -2703,8 +2714,8 @@ sub TestServer {
         return unless ref $self;
     }
 
-    return $self->Error(NOSERVER) unless defined $self->{'smtp'};
-#    if (!defined($self->{'smtpaddr'})) { return $self->Error(HOSTNOTFOUND($self->{'smtp'})); }
+    return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
+#    if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
 
     if (exists $self->{'on_errors'} and (!defined($self->{'on_errors'}) or $self->{'on_errors'} eq 'undef')) {
         return ($self->Connect() and $self->Close() and 1);
@@ -2957,7 +2968,7 @@ If you want to give some better error message you may do it like this :
  sub SiteHook {
   my $self = shift;
   if (whatever($self)) {
-    $self->Error( SITEERROR);
+    $self->Error( _SITEERROR);
     $Mail::Sender::Error = "I don't like this mail";
     return 0
   } else {
