@@ -513,6 +513,7 @@ sub UNKNOWNAUTH {
 
 sub ALLRECIPIENTSBAD {
     $!=2;
+    $Mail::Sender::Error="All recipients are bad";
     return -20, $Mail::Sender::Error;
 }
 
