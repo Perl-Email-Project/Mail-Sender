@@ -26,6 +26,14 @@ can_ok('Mail::Sender',
 }
 
 {
+    # test GMT offset
+    my $diff = Mail::Sender::ResetGMTdiff();
+    like($diff, qr/^[+-][0-9]+$/, 'ResetGMTdiff: properly set');
+    is($diff, $Mail::Sender::GMTdiff, 'ResetGMTdiff: properly set');
+    ok($Mail::Sender::GMTdiff, 'ResetGMTdiff: properly set');
+}
+
+{
     # GuessCType
     my $type = Mail::Sender::GuessCType();
     is($type, 'application/octet-stream', 'GuessCType: empty call');

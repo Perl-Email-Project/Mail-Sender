@@ -3,14 +3,8 @@ use warnings;
 use Mail::Sender;
 use Test::More;
 
-BEGIN {
-    use_ok( 'Mail::Sender' );
-}
-
 my $sender = Mail::Sender->new({tls_allowed => 0});
-
-ok( ($sender > 0), "created the object with default settings")
- or do { diag( "  Error: $Mail::Sender::Error"); exit};
+isa_ok($sender, 'Mail::Sender', 'new: Got a proper object instance');
 
 SKIP: {
     skip "No SMTP server set in the default config", 3 unless $sender->{smtp};

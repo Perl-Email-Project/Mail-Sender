@@ -2,22 +2,40 @@ package Mail::Sender;
 
 use strict;
 use warnings;
+use base 'Exporter';
 
 # no warnings 'uninitialized';
-use Carp;
+use Carp ();
 use Encode qw(encode decode);
-use File::Basename;
-use IO::Socket::INET;
-use MIME::Base64;
-use MIME::QuotedPrint;
-use Time::Local;
+use File::Basename    ();
+use IO::Socket::INET  ();
+use MIME::Base64      ();
+use MIME::QuotedPrint ();
+use Time::Local       ();
 
-use base 'Exporter';
 our @EXPORT    = qw();
 our @EXPORT_OK = qw(@error_str GuessCType);
 
 our $VERSION = '0.900';
 $VERSION = eval $VERSION;
+
+our $GMTdiff;
+our $MD5_loaded = 0;
+our $debug      = 0;
+our %CTypes     = (
+    GIF   => 'image/gif',
+    JPE   => 'image/jpeg',
+    JPEG  => 'image/jpeg',
+    SHTML => 'text/html',
+    SHTM  => 'text/html',
+    HTML  => 'text/html',
+    HTM   => 'text/html',
+    TXT   => 'text/plain',
+    INI   => 'text/plain',
+    DOC   => 'application/x-msword',
+    EML   => 'message/rfc822',
+);
+
 
 # if you do not use MailFile or SendFile and only send 7BIT or 8BIT "encoded"
 # messages you may comment out these lines.
@@ -63,22 +81,6 @@ BEGIN {
     }
 }
 
-our $MD5_loaded = 0;
-our $debug      = 0;
-our %CTypes     = (
-    GIF   => 'image/gif',
-    JPE   => 'image/jpeg',
-    JPEG  => 'image/jpeg',
-    SHTML => 'text/html',
-    SHTM  => 'text/html',
-    HTML  => 'text/html',
-    HTM   => 'text/html',
-    TXT   => 'text/plain',
-    INI   => 'text/plain',
-    DOC   => 'application/x-msword',
-    EML   => 'message/rfc822',
-);
-
 #local IP address and name
 my $local_name
     = $ENV{HOSTNAME} || $ENV{HTTP_HOST} || (gethostbyname 'localhost')[0];
@@ -87,13 +89,13 @@ $local_name
 my $local_IP = join('.', unpack('CCCC', (gethostbyname $local_name)[4]));
 
 #time diference to GMT - Windows will not set $ENV{'TZ'}, if you know a better way ...
-my $GMTdiff;
 
 sub ResetGMTdiff {
     my $local = time;
-    my $gm    = timelocal(gmtime $local);
+    my $gm    = Time::Local::timelocal(gmtime $local);
     my $sign  = qw( + + - ) [$local <=> $gm];
     $GMTdiff = sprintf "%s%02d%02d", $sign, (gmtime abs($local - $gm))[2, 1];
+    return $GMTdiff;
 }
 ResetGMTdiff();
 
@@ -109,14 +111,14 @@ sub enc_base64 {
     if ($_[0]) {
         my $charset = $_[0];
         sub {
-            my $s = encode_base64(encode($charset, $_[0]));
+            my $s = MIME::Base64::encode_base64(encode($charset, $_[0]));
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
             }
     }
     else {
         sub {
-            my $s = encode_base64($_[0]);
+            my $s = MIME::Base64::encode_base64($_[0]);
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
             }
@@ -130,21 +132,21 @@ sub enc_qp {
         sub {
             my $s = encode($charset, $_[0]);
             $s =~ s/\x0D\x0A/\n/g;
-            $s = encode_qp($s);
+            $s = MIME::QuotedPrint::encode_qp($s);
             $s =~ s/^\./../gm;
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
     else {
         sub {
             my $s = $_[0];
             $s =~ s/\x0D\x0A/\n/g;
-            $s = encode_qp($s);
+            $s = MIME::QuotedPrint::encode_qp($s);
             $s =~ s/^\./../gm;
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
 }
 
@@ -156,7 +158,7 @@ sub enc_plain {
             $s =~ s/^\./../gm;
             $s =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
     else {
         sub {
@@ -164,7 +166,7 @@ sub enc_plain {
             $s =~ s/^\./../gm;
             $s =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
 }
 
@@ -236,7 +238,7 @@ sub print_hdr {
             $part .= $parts[++$i]
                 if ($i < $#parts && $parts[$i + 1] =~ /^\s+$/);
             if ($part =~ /[^[:ascii:]]/ || $part =~ /[\r\n\t]/) {
-                $part = encode_qp($part, '');
+                $part = MIME::QuotedPrint::encode_qp($part, '');
                 $part =~ s/([\s\?])/'=' . sprintf '%02x',ord($1)/ge;
                 $str .= "=?$charset?Q?$part?=";
             }
@@ -326,10 +328,10 @@ sub Mail::Sender::Auth::LOGIN {
         if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     }
     else {
-        $_ = send_cmd $s, &encode_base64($self->{'authid'}, '');
+        $_ = send_cmd $s, MIME::Base64::encode_base64($self->{'authid'}, '');
         if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
 
-        $_ = send_cmd $s, &encode_base64($self->{'authpwd'}, '');
+        $_ = send_cmd $s, MIME::Base64::encode_base64($self->{'authpwd'}, '');
         if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     }
     return;
@@ -352,9 +354,9 @@ sub Mail::Sender::Auth::CRAM_MD5 {
     my $user   = $self->{'authid'};
     my $secret = $self->{'authpwd'};
 
-    my $decoded_stamp = decode_base64($stamp);
+    my $decoded_stamp = MIME::Base64::decode_base64($stamp);
     my $hmac          = hmac_md5_hex($decoded_stamp, $secret);
-    my $answer        = encode_base64($user . ' ' . $hmac, '');
+    my $answer        = MIME::Base64::encode_base64($user . ' ' . $hmac, '');
     $_ = send_cmd $s, $answer;
     if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     return;
@@ -368,8 +370,8 @@ sub Mail::Sender::Auth::PLAIN {
     if (!/^[123]/) { return $self->Error(_INVALIDAUTH('PLAIN', $_)); }
 
     $_ = send_cmd $s,
-        encode_base64("\000" . $self->{'authid'} . "\000" . $self->{'authpwd'},
-        '');
+        MIME::Base64::encode_base64(
+        "\000" . $self->{'authid'} . "\000" . $self->{'authpwd'}, '');
     if (!/^[123]/) { return $self->Error(_LOGINERROR($_)); }
     return;
 }
@@ -1481,7 +1483,7 @@ sub Open {
 
     return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
 
-    #    if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
+#    if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
 
     if ($Mail::Sender::{'SiteHook'} and !$self->SiteHook()) {
         return defined $self->{'error'} ? $self->{'error'} : $self->{'error'}
@@ -1646,7 +1648,7 @@ sub Open {
     }
 
     unless (defined $Mail::Sender::NO_X_MAILER) {
-        my $script = basename($0);
+        my $script = File::Basename::basename($0);
         print_hdr $s,
             "X-Mailer" =>
             qq{Perl script "$script"\r\n\tusing Mail::Sender $Mail::Sender::ver by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
@@ -1942,7 +1944,7 @@ sub OpenMultipart {
     }
 
     unless (defined $Mail::Sender::NO_X_MAILER and $Mail::Sender::NO_X_MAILER) {
-        my $script = basename($0);
+        my $script = File::Basename::basename($0);
         print_hdr $s,
             "X-Mailer" =>
             qq{Perl script "$script"\r\n\tusing Mail::Sender $Mail::Sender::ver by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
@@ -2124,7 +2126,7 @@ sub MailFile {
     $Mail::Sender::Error = '';
     foreach $file (@files) {
         my $cnt;
-        my $filename = basename $file;
+        my $filename = File::Basename::basename $file;
         my $ctype    = $ctype || GuessCType $filename, $file;
         my $encoding = $encoding
             || ($ctype =~ m#^text/#i ? 'Quoted-printable' : 'Base64');
@@ -2690,7 +2692,7 @@ sub SendFile {
         $self->{'_part'}++;
         $self->{'encoding'} = $encoding;
         my $cnt    = '';
-        my $name   = basename $file;
+        my $name   = File::Basename::basename $file;
         my $fctype = $ctype ? $ctype : GuessCType $name, $file;
         $self->{'ctype'} = $fctype;
 
@@ -2933,15 +2935,16 @@ the authentication protocols it supports.
 
 sub QueryAuthProtocols {
     my $self = shift;
+    Carp::croak(
+        "Mail::Sender::QueryAuthProtocols() called without any parameter!")
+        unless defined $self;
     local $_;
-    if (!defined $self) {
-        croak
-            "Mail::Sender::QueryAuthProtocols() called without any parameter!";
-    }
-    elsif (ref $self)
-    { # $sender->QueryAuthProtocols() or $sender->QueryAuthProtocols('the.server.com)
-        if ($self->{'socket'})
-        {    # the user did not Close() or Cancel() the previous mail
+    if (ref $self) {
+
+ # $sender->QueryAuthProtocols() or $sender->QueryAuthProtocols('the.server.com)
+        if ($self->{'socket'}) {
+
+            # the user did not Close() or Cancel() the previous mail
             die
                 "You forgot to close the mail before calling QueryAuthProtocols!\n";
         }
@@ -2958,7 +2961,8 @@ sub QueryAuthProtocols {
         }
     }
     elsif ($self =~ /::/) { # Mail::Sender->QueryAuthProtocols('the.server.com')
-        croak "Mail::Sender->QueryAuthProtocols() called without any parameter!"
+        Carp::croak
+            "Mail::Sender->QueryAuthProtocols() called without any parameter!"
             if !@_;
         $self = new Mail::Sender {smtp => $_[0]};
         return unless ref $self;
@@ -3011,7 +3015,7 @@ sub TestServer {
     my $self = shift;
     local $_;
     if (!defined $self) {
-        croak "Mail::Sender::TestServer() called without any parameter!";
+        Carp::croak "Mail::Sender::TestServer() called without any parameter!";
     }
     elsif (ref $self)
     {    # $sender->TestServer() or $sender->TestServer('the.server.com)
@@ -3033,18 +3037,19 @@ sub TestServer {
         $self->{'on_errors'} = 'die';
     }
     elsif ($self =~ /::/) {    # Mail::Sender->TestServer('the.server.com')
-        croak "Mail::Sender->TestServer() called without any parameter!" if !@_;
-        $self = new Mail::Sender {smtp => $_[0], on_errors => 'die'};
+        Carp::croak("Mail::Sender->TestServer() called without any parameter!")
+            if !@_;
+        $self = Mail::Sender->new({smtp => $_[0], on_errors => 'die'});
         return unless ref $self;
     }
     else {    # Mail::Sender::QueryAuthProtocols('the.server.com')
-        $self = new Mail::Sender {smtp => $self, on_errors => 'die'};
+        $self = Mail::Sender->new({smtp => $self, on_errors => 'die'});
         return unless ref $self;
     }
 
     return $self->Error(_NOSERVER) unless defined $self->{'smtp'};
 
-    # if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
+# if (!defined($self->{'smtpaddr'})) { return $self->Error(_HOSTNOTFOUND($self->{'smtp'})); }
 
     if (exists $self->{'on_errors'}
         and (!defined($self->{'on_errors'}) or $self->{'on_errors'} eq 'undef'))
