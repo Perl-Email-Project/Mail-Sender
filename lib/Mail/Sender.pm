@@ -678,8 +678,9 @@ Version 0.8.23
 =head1 SYNOPSIS
 
  use Mail::Sender;
- $sender = new Mail::Sender
-  {smtp => 'mail.yourdomain.com', from => 'your@address.com'};
+ $sender = Mail::Sender->new({
+   smtp => 'mail.yourdomain.com', from => 'your@address.com'
+ });
  $sender->MailFile({to => 'some@address.com',
   subject => 'Here is the file',
   msg => "I'm sending you the list you wanted.",
@@ -908,7 +909,7 @@ you have to open it yourself and pass the filehandle:
 
     open my $DEBUG, ">> /path/to/debug/file.txt"
         or die "Can't open the debug file: $!\n"
-    $sender = new Mail::Sender ({
+    $sender = Mail::Sender->new({
         ...
         debug => $DEBUG,
     });
@@ -1367,7 +1368,7 @@ sub _prepare_headers {
  Open({[from => "somebody@somewhere.com"] , [to => "else@nowhere.com"] [,...]})
 
 Opens a new message. If some parameters are unspecified or empty, it uses
-the parameters passed to the "C<$Sender=new Mail::Sender(...)>";
+the parameters passed to the C<< $Sender = Mail::Sender->new(...) >>;
 
 See C<new Mail::Sender> for info about the parameters.
 
@@ -1695,9 +1696,9 @@ sub Open {
  OpenMultipart({[from => "somebody@somewhere.com"] , [to => "else@nowhere.com"] [,...]})
 
 Opens a multipart message. If some parameters are unspecified or empty, it uses
-the parameters passed to the C<$Sender=new Mail::Sender(...)>.
+the parameters passed to the C<< $Sender = Mail::Sender->new(...) >>.
 
-See C<new Mail::Sender> for info about the parameters.
+See C<Mail::Sender/"new"> for info about the parameters.
 
 Returns ref to the Mail::Sender object if successful.
 
@@ -2007,7 +2008,7 @@ sub Connected {
 Sends a message. If a mail in $sender is opened it gets closed
 and a new mail is created and sent. $sender is then closed.
 If some parameters are unspecified or empty, it uses
-the parameters passed to the "C<$Sender=new Mail::Sender(...)>";
+the parameters passed to the "C<$Sender= Mail::Sender->new(...)>";
 
 See C<new Mail::Sender> for info about the parameters.
 
@@ -2056,7 +2057,7 @@ sub MailMsg {
 Sends one or more files by mail. If a mail in $sender is opened it gets closed
 and a new mail is created and sent. $sender is then closed.
 If some parameters are unspecified or empty, it uses
-the parameters passed to the "C<$Sender=new Mail::Sender(...)>";
+the parameters passed to the "C<$Sender= Mail::Sender->new(...)>";
 
 The C<file> parameter may be a "filename", a "list, of, file, names" or a \@list_of_file_names.
 
@@ -2964,11 +2965,11 @@ sub QueryAuthProtocols {
         Carp::croak
             "Mail::Sender->QueryAuthProtocols() called without any parameter!"
             if !@_;
-        $self = new Mail::Sender {smtp => $_[0]};
+        $self = Mail::Sender->new({smtp => $_[0]});
         return unless ref $self;
     }
     else {                  # Mail::Sender::QueryAuthProtocols('the.server.com')
-        $self = new Mail::Sender {smtp => $self};
+        $self = Mail::Sender->new({smtp => $self});
         return unless ref $self;
     }
 
@@ -3399,18 +3400,18 @@ Please use the protocols defined within Sender.pm as examples.
 
 =head2 Object creation
 
- ref ($sender = new Mail::Sender { from => 'somebody@somewhere.com',
-       smtp => 'mail.yourISP.com', boundary => 'This-is-a-mail-boundary-435427'})
+ ref ($sender = Mail::Sender->new({ from => 'somebody@somewhere.com',
+       smtp => 'mail.yourISP.com', boundary => 'This-is-a-mail-boundary-435427'}))
  or die "Error in mailing : $Mail::Sender::Error\n";
 
 or
 
- my $sender = new Mail::Sender { ... };
+ my $sender = Mail::Sender->new(){ ... });
  die "Error in mailing : $Mail::Sender::Error\n" unless ref $sender;
 
 or
 
- my $sender = new Mail::Sender { ..., on_errors => 'undef' }
+ my $sender = Mail::Sender->new({ ..., on_errors => 'undef' })
    or die "Error in mailing : $Mail::Sender::Error\n";
 
 You may specify the options either when creating the Mail::Sender object
@@ -3425,11 +3426,11 @@ undef and otherwise it returns a negative error code!
 
 =head2 Simple single part message
 
-    $sender = new Mail::Sender {
+    $sender = Mail::Sender->new({
         smtp => 'mail.yourISP.com',
         from => 'somebody@somewhere.com',
         on_errors => undef,
-    }
+    })
         or die "Can't create the Mail::Sender object: $Mail::Sender::Error\n";
     $sender->Open({
         to => 'mama@home.org, papa@work.com',
@@ -3446,11 +3447,11 @@ undef and otherwise it returns a negative error code!
 or
 
     eval {
-        $sender = new Mail::Sender {
+        $sender = Mail::Sender->new({
             smtp => 'mail.yourISP.com',
             from => 'somebody@somewhere.com',
             on_errors => 'die',
-        };
+        });
         $sender->Open({
             to => 'mama@home.org, papa@work.com',
             cc => 'somebody@somewhere.com',
@@ -3467,11 +3468,11 @@ or
 
 or
 
-    $sender = new Mail::Sender {
+    $sender = Mail::Sender->new({
         smtp => 'mail.yourISP.com',
         from => 'somebody@somewhere.com',
         on_errors => 'code',
-    };
+    });
     die "Can't create the Mail::Sender object: $Mail::Sender::Error\n"
         unless ref $sender;
     ref $sender->Open({
@@ -3835,7 +3836,7 @@ If this doesn't work with your mail client, please let me know and we might find
  use CGI;
  use Mail::Sender;
 
- $query = new CGI;
+ $query = CGI->new();
 
  # uploading the file...
  $filename = $query->param('mailformFile');
@@ -3843,7 +3844,7 @@ If this doesn't work with your mail client, please let me know and we might find
   $tmp_file = $query->tmpFileName($filename);
  }
 
- $sender = new Mail::Sender {from => 'script@krynicky.cz',smtp => 'mail.krynicky.czX'};
+ $sender = Mail::Sender->new({from => 'script@krynicky.cz',smtp => 'mail.krynicky.czX'});
  $sender->OpenMultipart({to=> 'jenda@krynicky.czX',subject=> 'test CGI attach'});
  $sender->Body();
  $sender->Send(<<'END');
@@ -3865,7 +3866,7 @@ If this doesn't work with your mail client, please let me know and we might find
 =head2 Listing the authentication protocols supported by the server
 
  use Mail::Sender;
- my $sender = new Mail::Sender {smtp => 'localhost'};
+ my $sender = Mail::Sender->new({smtp => 'localhost'});
  die "Error: $Mail::Sender::Error\n" unless ref $sender;
  print join(', ', $sender->QueryAuthProtocols()),"\n";
 
@@ -3939,7 +3940,7 @@ DO NOT mix Open(Multipart)|Send(Line)(Ex)|Close with MailMsg or MailFile.
 Both Mail(Msg/File) close any Open-ed mail.
 Do not try this:
 
- $sender = new Mail::Sender ...;
+ $sender = Mail::Sender->new(...);
  $sender->OpenMultipart...;
  $sender->Body;
  $sender->Send("...");
