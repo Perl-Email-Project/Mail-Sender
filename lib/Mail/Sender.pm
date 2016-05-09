@@ -6,7 +6,7 @@ use base 'Exporter';
 
 # no warnings 'uninitialized';
 use Carp ();
-use Encode qw(encode decode);
+use Encode ();
 use File::Basename    ();
 use IO::Socket::INET  ();
 use MIME::Base64      ();
@@ -111,17 +111,17 @@ sub enc_base64 {
     if ($_[0]) {
         my $charset = $_[0];
         sub {
-            my $s = MIME::Base64::encode_base64(encode($charset, $_[0]));
+            my $s = MIME::Base64::encode_base64(Encode::encode($charset, $_[0]));
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-            }
+        }
     }
     else {
         sub {
             my $s = MIME::Base64::encode_base64($_[0]);
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-            }
+        }
     }
 }
 my $enc_base64_chunk = 57;
@@ -130,7 +130,7 @@ sub enc_qp {
     if ($_[0]) {
         my $charset = $_[0];
         sub {
-            my $s = encode($charset, $_[0]);
+            my $s = Encode::encode($charset, $_[0]);
             $s =~ s/\x0D\x0A/\n/g;
             $s = MIME::QuotedPrint::encode_qp($s);
             $s =~ s/^\./../gm;
@@ -154,7 +154,7 @@ sub enc_plain {
     if ($_[0]) {
         my $charset = $_[0];
         sub {
-            my $s = encode($charset, $_[0]);
+            my $s = Encode::encode($charset, $_[0]);
             $s =~ s/^\./../gm;
             $s =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
             return $s;
@@ -230,7 +230,7 @@ sub print_hdr {
     $str =~ s/[\x0D\x0A\s]+$//;
 
     if ($charset && $str =~ /[^[:ascii:]]/) {
-        $str = encode($charset, $str);
+        $str = Encode::encode($charset, $str);
         my @parts = split /(\s*[,;<> ]\s*)/, $str;
         $str = '';
         for (my $i = 0; $i < @parts; $i++) {

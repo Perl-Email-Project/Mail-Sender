@@ -19,6 +19,17 @@ can_ok('Mail::Sender',
 );
 
 {
+    # encoding
+    isa_ok(Mail::Sender::enc_base64(), 'CODE', 'enc_base64: empty call gets subref');
+    isa_ok(Mail::Sender::enc_base64("UTF-8", "foo"), 'CODE', 'enc_base64: got a sub ref back');
+    isa_ok(Mail::Sender::enc_qp(), 'CODE', 'enc_base64: empty call - got a sub ref back');
+    isa_ok(Mail::Sender::enc_qp("UTF-8", "foo"), 'CODE', 'enc_base64: got a sub ref back');
+    isa_ok(Mail::Sender::enc_plain(), 'CODE', 'enc_base64: empty call - got a sub ref back');
+    isa_ok(Mail::Sender::enc_plain("UTF-8", "foo"), 'CODE', 'enc_base64: got a sub ref back');
+    is(Mail::Sender::enc_xtext("foo"), 'foo', 'enc_base64: got encoded content');
+}
+
+{
     # test username
     my $username = Mail::Sender::getusername();
     ok($username, 'getusername: found a username');
