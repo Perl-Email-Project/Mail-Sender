@@ -5,8 +5,8 @@ use warnings;
 use base 'Exporter';
 
 # no warnings 'uninitialized';
-use Carp ();
-use Encode ();
+use Carp              ();
+use Encode            ();
 use File::Basename    ();
 use IO::Socket::INET  ();
 use MIME::Base64      ();
@@ -20,6 +20,7 @@ our $VERSION = '0.900';
 $VERSION = eval $VERSION;
 
 our $GMTdiff;
+our $Error;
 our $MD5_loaded = 0;
 our $debug      = 0;
 our %CTypes     = (
@@ -35,7 +36,36 @@ our %CTypes     = (
     DOC   => 'application/x-msword',
     EML   => 'message/rfc822',
 );
-
+our @Errors = (
+    'OK',
+    'Unknown encoding',
+    'TLS unsupported by server',
+    'TLS unsupported by script',
+    'IO::SOCKET::SSL failed',
+    'STARTTLS failed',
+    'debug file cannot be opened',
+    'file cannot be read',
+    'all recipients have been rejected',
+    'authentication protocol is not implemented',
+    'login not accepted',
+    'authentication protocol not accepted by the server',
+    'no From: address specified',
+    'no SMTP server specified',
+    'connection not established. Did you mean MailFile instead of SendFile?',
+    'site specific error',
+    'not available in singlepart mode',
+    'file not found',
+    'no file name specified in call to MailFile or SendFile',
+    'no message specified in call to MailMsg or MailFile',
+    'argument $to empty',
+    'transmission of message failed',
+    'local user $to unknown on host $smtp',
+    'unspecified communication error',
+    'service not available',
+    'connect() failed',
+    'socket() failed',
+    '$smtphost unknown'
+);
 
 # if you do not use MailFile or SendFile and only send 7BIT or 8BIT "encoded"
 # messages you may comment out these lines.
@@ -104,32 +134,33 @@ my @priority
     = ('', '1 (Highest)', '2 (High)', '3 (Normal)', '4 (Low)', '5 (Lowest)');
 
 #data encoding
-my $chunksize   = 1024 * 4;
-my $chunksize64 = 71 * 57;    # must be divisible by 57 !
+my $chunksize        = 1024 * 4;
+my $chunksize64      = 71 * 57;    # must be divisible by 57 !
+my $enc_base64_chunk = 57;
 
 sub enc_base64 {
     if ($_[0]) {
         my $charset = $_[0];
-        sub {
-            my $s = MIME::Base64::encode_base64(Encode::encode($charset, $_[0]));
+        return sub {
+            my $s
+                = MIME::Base64::encode_base64(Encode::encode($charset, $_[0]));
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
     else {
-        sub {
+        return sub {
             my $s = MIME::Base64::encode_base64($_[0]);
             $s =~ s/\x0A/\x0D\x0A/sg;
             return $s;
-        }
+            }
     }
 }
-my $enc_base64_chunk = 57;
 
 sub enc_qp {
     if ($_[0]) {
         my $charset = $_[0];
-        sub {
+        return sub {
             my $s = Encode::encode($charset, $_[0]);
             $s =~ s/\x0D\x0A/\n/g;
             $s = MIME::QuotedPrint::encode_qp($s);
@@ -139,7 +170,7 @@ sub enc_qp {
             }
     }
     else {
-        sub {
+        return sub {
             my $s = $_[0];
             $s =~ s/\x0D\x0A/\n/g;
             $s = MIME::QuotedPrint::encode_qp($s);
@@ -153,7 +184,7 @@ sub enc_qp {
 sub enc_plain {
     if ($_[0]) {
         my $charset = $_[0];
-        sub {
+        return sub {
             my $s = Encode::encode($charset, $_[0]);
             $s =~ s/^\./../gm;
             $s =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
@@ -161,7 +192,7 @@ sub enc_plain {
             }
     }
     else {
-        sub {
+        return sub {
             my $s = $_[0];
             $s =~ s/^\./../gm;
             $s =~ s/(?:\x0D\x0A?|\x0A)/\x0D\x0A/sg;
@@ -304,10 +335,11 @@ sub login {
     $self->{'authpwd'} = $self->{'password'}
         if (exists $self->{'password'} and !exists $self->{'authpwd'});
 
-    $auth =~ tr/a-zA-Z0-9_/_/c
-        ; # change all characters except letters, numbers and underscores to underscores
+  # change all characters except letters, numbers and underscores to underscores
+    $auth =~ tr/a-zA-Z0-9_/_/c;
     no strict qw'subs refs';
-    &{"Mail::Sender::Auth::" . $auth}($self);
+    my $method = "Mail::Sender::$auth";
+    $method->($self);
 }
 
 # authentication code stolen from http://support.zeitform.de/techinfo/e-mail_prot.html
@@ -451,35 +483,35 @@ sub __Debug {
 
 sub _HOSTNOTFOUND {
     my $msg = shift || '';
-    $!                   = 2;
-    $Mail::Sender::Error = "The SMTP server $msg was not found";
-    return -1, $Mail::Sender::Error;
+    $!     = 2;
+    $Error = "The SMTP server $msg was not found";
+    return -1, $Error;
 }
 
 sub _CONNFAILED {
-    $!                   = 5;
-    $Mail::Sender::Error = "connect() failed: $^E";
-    return -3, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "connect() failed: $^E";
+    return -3, $Error;
 }
 
 sub _SERVNOTAVAIL {
     my $msg = shift || '';
-    $!                   = 40;
-    $Mail::Sender::Error = "Service not available. "
+    $!     = 40;
+    $Error = "Service not available. "
         . ($msg ? "Reply: $msg" : "Server closed the connection unexpectedly");
-    return -4, $Mail::Sender::Error;
+    return -4, $Error;
 }
 
 sub _COMMERROR {
     my $msg = shift || '';
     $! = 5;
     if ($msg eq '') {
-        $Mail::Sender::Error = "No response from server";
+        $Error = "No response from server";
     }
     else {
-        $Mail::Sender::Error = "Server error: $msg";
+        $Error = "Server error: $msg";
     }
-    return -5, $Mail::Sender::Error;
+    return -5, $Error;
 }
 
 sub _USERUNKNOWN {
@@ -491,183 +523,150 @@ sub _USERUNKNOWN {
         $err =~ s/^\d+\s*//;
         $err =~ s/\s*$//s;
         $err ||= "Error";
-        $Mail::Sender::Error = "$err for \"$user\" on host \"$host\"";
+        $Error = "$err for \"$user\" on host \"$host\"";
     }
     else {
-        $Mail::Sender::Error = "Local user \"$user\" unknown on host \"$host\"";
+        $Error = "Local user \"$user\" unknown on host \"$host\"";
     }
-    return -6, $Mail::Sender::Error;
+    return -6, $Error;
 }
 
 sub _TRANSFAILED {
     my $msg = shift || '';
-    $!                   = 5;
-    $Mail::Sender::Error = "Transmission of message failed ($msg)";
-    return -7, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "Transmission of message failed ($msg)";
+    return -7, $Error;
 }
 
 sub _TOEMPTY {
-    $!                   = 14;
-    $Mail::Sender::Error = "Argument \$to empty";
-    return -8, $Mail::Sender::Error;
+    $!     = 14;
+    $Error = "Argument \$to empty";
+    return -8, $Error;
 }
 
 sub _NOMSG {
-    $!                   = 22;
-    $Mail::Sender::Error = "No message specified";
-    return -9, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "No message specified";
+    return -9, $Error;
 }
 
 sub _NOFILE {
-    $!                   = 22;
-    $Mail::Sender::Error = "No file name specified";
-    return -10, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "No file name specified";
+    return -10, $Error;
 }
 
 sub _FILENOTFOUND {
     my $msg = shift || '';
-    $!                   = 2;
-    $Mail::Sender::Error = "File \"$msg\" not found";
-    return -11, $Mail::Sender::Error;
+    $!     = 2;
+    $Error = "File \"$msg\" not found";
+    return -11, $Error;
 }
 
 sub _NOTMULTIPART {
     my $msg = shift || '';
-    $!                   = 40;
-    $Mail::Sender::Error = "$msg not available in singlepart mode";
-    return -12, $Mail::Sender::Error;
+    $!     = 40;
+    $Error = "$msg not available in singlepart mode";
+    return -12, $Error;
 }
 
 sub _SITEERROR {
-    $!                   = 15;
-    $Mail::Sender::Error = "Site specific error";
-    return -13, $Mail::Sender::Error;
+    $!     = 15;
+    $Error = "Site specific error";
+    return -13, $Error;
 }
 
 sub _NOTCONNECTED {
-    $!                   = 1;
-    $Mail::Sender::Error = "Connection not established";
-    return -14, $Mail::Sender::Error;
+    $!     = 1;
+    $Error = "Connection not established";
+    return -14, $Error;
 }
 
 sub _NOSERVER {
-    $!                   = 22;
-    $Mail::Sender::Error = "No SMTP server specified";
-    return -15, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "No SMTP server specified";
+    return -15, $Error;
 }
 
 sub _NOFROMSPECIFIED {
-    $!                   = 22;
-    $Mail::Sender::Error = "No From: address specified";
-    return -16, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "No From: address specified";
+    return -16, $Error;
 }
 
 sub _INVALIDAUTH {
     my $proto = shift || '';
     my $res   = shift || '';
-    $! = 22;
-    $Mail::Sender::Error
-        = "Authentication protocol $proto is not accepted by the server";
-    $Mail::Sender::Error .= ",\nresponse: $res" if $res;
-    return -17, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "Authentication protocol $proto is not accepted by the server";
+    $Error .= ",\nresponse: $res" if $res;
+    return -17, $Error;
 }
 
 sub _LOGINERROR {
-    $!                   = 22;
-    $Mail::Sender::Error = "Login not accepted";
-    return -18, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "Login not accepted";
+    return -18, $Error;
 }
 
 sub _UNKNOWNAUTH {
     my $msg = shift || '';
-    $! = 22;
-    $Mail::Sender::Error
-        = "Authentication protocol $msg is not implemented by Mail::Sender";
-    return -19, $Mail::Sender::Error;
+    $!     = 22;
+    $Error = "Authentication protocol $msg is not implemented by Mail::Sender";
+    return -19, $Error;
 }
 
 sub _ALLRECIPIENTSBAD {
-    $!                   = 2;
-    $Mail::Sender::Error = "All recipients are bad";
-    return -20, $Mail::Sender::Error;
+    $!     = 2;
+    $Error = "All recipients are bad";
+    return -20, $Error;
 }
 
 sub _FILECANTREAD {
     my $msg = shift || '';
-    $Mail::Sender::Error = "File \"$msg\" cannot be read: $^E";
-    return -21, $Mail::Sender::Error;
+    $Error = "File \"$msg\" cannot be read: $^E";
+    return -21, $Error;
 }
 
 sub _DEBUGFILE {
-    $Mail::Sender::Error = shift;
-    return -22, $Mail::Sender::Error;
+    $Error = shift;
+    return -22, $Error;
 }
 
 sub _STARTTLS {
     my $msg = shift || '';
     my $two = shift || '';
-    $!                   = 5;
-    $Mail::Sender::Error = "STARTTLS failed: $msg $two";
-    return -23, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "STARTTLS failed: $msg $two";
+    return -23, $Error;
 }
 
 sub _IO_SOCKET_SSL {
     my $msg = shift || '';
-    $!                   = 5;
-    $Mail::Sender::Error = "IO::Socket::SSL->start_SSL failed: $msg";
-    return -24, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "IO::Socket::SSL->start_SSL failed: $msg";
+    return -24, $Error;
 }
 
 sub _TLS_UNSUPPORTED_BY_ME {
     my $msg = shift || '';
-    $!                   = 5;
-    $Mail::Sender::Error = "TLS unsupported by the script: $msg";
-    return -25, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "TLS unsupported by the script: $msg";
+    return -25, $Error;
 }
 
 sub _TLS_UNSUPPORTED_BY_SERVER {
-    $!                   = 5;
-    $Mail::Sender::Error = "TLS unsupported by server";
-    return -26, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "TLS unsupported by server";
+    return -26, $Error;
 }
 
 sub _UNKNOWNENCODING {
     my $msg = shift || '';
-    $!                   = 5;
-    $Mail::Sender::Error = "Unknown encoding '$msg'";
-    return -27, $Mail::Sender::Error;
+    $!     = 5;
+    $Error = "Unknown encoding '$msg'";
+    return -27, $Error;
 }
-
-@Mail::Sender::Errors = (
-    'OK',
-    'Unknown encoding',
-    'TLS unsupported by server',
-    'TLS unsupported by script',
-    'IO::SOCKET::SSL failed',
-    'STARTTLS failed',
-    'debug file cannot be opened',
-    'file cannot be read',
-    'all recipients have been rejected',
-    'authentication protocol is not implemented',
-    'login not accepted',
-    'authentication protocol not accepted by the server',
-    'no From: address specified',
-    'no SMTP server specified',
-    'connection not established. Did you mean MailFile instead of SendFile?',
-    'site specific error',
-    'not available in singlepart mode',
-    'file not found',
-    'no file name specified in call to MailFile or SendFile',
-    'no message specified in call to MailMsg or MailFile',
-    'argument $to empty',
-    'transmission of message failed',
-    'local user $to unknown on host $smtp',
-    'unspecified communication error',
-    'service not available',
-    'connect() failed',
-    'socket() failed',
-    '$smtphost unknown'
-);
 
 =head1 NAME
 
@@ -1065,11 +1064,11 @@ sub new {
         $class = $this;
     }
     bless $self, $class;
-    return $self->initialize(@_);
+    return $self->_initialize(@_);
 }
 
-sub initialize {
-    undef $Mail::Sender::Error;
+sub _initialize {
+    undef $Error;
     my $self = shift;
 
     delete $self->{'_buffer'};
@@ -1291,7 +1290,7 @@ sub ClearErrors {
     my $self = shift();
     delete $self->{'error'};
     delete $self->{'error_msg'};
-    undef $Mail::Sender::Error;
+    undef $Error;
 }
 
 sub _prepare_addresses {
@@ -1385,7 +1384,7 @@ Returns ref to the Mail::Sender object if successful.
 =cut
 
 sub Open {
-    undef $Mail::Sender::Error;
+    undef $Error;
     my $self = shift;
     local $_;
     if (!$self->{'keepconnection'} and $self->{'_data'})
@@ -1705,7 +1704,7 @@ Returns ref to the Mail::Sender object if successful.
 =cut
 
 sub OpenMultipart {
-    undef $Mail::Sender::Error;
+    undef $Error;
     my $self = shift;
 
     local $_;
@@ -2124,7 +2123,7 @@ sub MailFile {
         and $self->SendEnc($msg)
         or return $self->{'error'};
 
-    $Mail::Sender::Error = '';
+    $Error = '';
     foreach $file (@files) {
         my $cnt;
         my $filename = File::Basename::basename $file;
@@ -2161,7 +2160,7 @@ sub MailFile {
         my $mychunksize = $chunksize;
         $mychunksize = $chunksize64 if defined $self->{'chunk_size'};
         while (read $FH, $cnt, $mychunksize) {
-            $cnt = &$code($cnt);
+            $cnt = $code->($cnt);
             $cnt =~ s/^\.\././ unless $self->{'_had_newline'};
             print $s $cnt;
             $self->{'_had_newline'} = ($cnt =~ /[\n\r]$/);
@@ -2169,11 +2168,11 @@ sub MailFile {
         close $FH;
     }
 
-    if ($Mail::Sender::Error eq '') {
-        undef $Mail::Sender::Error;
+    if ($Error eq '') {
+        undef $Error;
     }
     else {
-        chomp $Mail::Sender::Error;
+        chomp $Error;
     }
     return $self->Close;
 }
@@ -2248,6 +2247,9 @@ Returns the object if successful.
 
 =cut
 
+sub print { return shift->SendEnc(@_) }
+sub SendLineEnc { push @_, "\r\n"; return shift->SendEnc(@_) }
+
 sub SendEnc {
     my $self = shift;
     local $_;
@@ -2269,24 +2271,21 @@ sub SendEnc {
         $len = length $str;
         if (($blen = ($len % $chunk)) > 0) {
             $self->{'_buffer'} = substr($str, ($len - $blen));
-            print $s (&$code(substr($str, 0, $len - $blen)));
+            print $s ($code->(substr($str, 0, $len - $blen)));
         }
         else {
             delete $self->{'_buffer'};
-            print $s (&$code($str));
+            print $s ($code->($str));
         }
     }
     else {
-        my $encoded = &$code(join('', @_));
+        my $encoded = $code->(join('', @_));
         $encoded =~ s/^\.\././ unless $self->{'_had_newline'};
         print $s $encoded;
         $self->{'_had_newline'} = ($_[-1] =~ /[\n\r]$/);
     }
     return $self;
 }
-
-sub print;
-*print = \&SendEnc;
 
 =head2 SendLineEnc
 
@@ -2305,13 +2304,6 @@ the data is very likely to get crippled.
 
 Returns the object if successful.
 
-=cut
-
-sub SendLineEnc {
-    push @_, "\r\n";
-    goto &SendEnc;
-}
-
 =head2 SendEx
 
  SendEx(@strings)
@@ -2325,6 +2317,8 @@ YOU SHOULD USE SendEnc() INSTEAD!
 Returns the object if successful.
 
 =cut
+
+sub SendLineEx { push @_, "\r\n"; shift->SendEx(@_) }
 
 sub SendEx {
     my $self = shift;
@@ -2351,14 +2345,6 @@ UNLESS YOU ARE ABSOLUTELY SURE YOU KNOW WHAT YOU ARE DOING
 YOU SHOULD USE SendEnc() INSTEAD!
 
 Returns the object if successful.
-
-=cut
-
-sub SendLineEx {
-    push @_, "\r\n";
-    goto &SendEx;
-}
-
 
 =head2 Part
 
@@ -2626,6 +2612,8 @@ Returns the Mail::Sender object if successful, negative error code if not.
 
 =cut
 
+sub Attach { shift->SendFile(@_) }
+
 sub SendFile {
     my $self = shift;
     local $_;
@@ -2672,7 +2660,7 @@ sub SendFile {
 
     if ($self->{'_buffer'}) {
         my $code = $self->{'code'};
-        print $s (&$code($self->{'_buffer'}));
+        print $s ($code->($self->{'_buffer'}));
         delete $self->{'_buffer'};
     }
 
@@ -2746,16 +2734,13 @@ sub SendFile {
         my $s;
         $s = $self->{'socket'} or return $self->Error(_NOTCONNECTED);
         while (read $FH, $cnt, $mychunksize) {
-            print $s (&$code($cnt));
+            print $s ($code->($cnt));
         }
         close $FH;
     }
 
     return $self;
 }
-
-sub Attach;
-*Attach = \&SendFile;
 
 =head2 EndPart
 
@@ -2782,7 +2767,7 @@ sub EndPart {
     if ($self->{'_buffer'}) {    # used only for base64
         my $code = $self->{'code'};
         if (defined $code) {
-            print $s (&$code($self->{'_buffer'}));
+            print $s ($code->($self->{'_buffer'}));
         }
         else {
             print $s ($self->{'_buffer'});
@@ -2845,7 +2830,7 @@ sub Close {
         if ($self->{'_buffer'}) {
             my $code = $self->{'code'};
             if (defined $code) {
-                print $s (&$code($self->{'_buffer'}));
+                print $s ($code->($self->{'_buffer'}));
             }
             else {
                 print $s ($self->{'_buffer'});
