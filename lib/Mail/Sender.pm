@@ -11,6 +11,7 @@ use File::Basename    ();
 use IO::Socket::INET  ();
 use MIME::Base64      ();
 use MIME::QuotedPrint ();
+use Socket            ();
 use Time::Local       ();
 
 our @EXPORT    = qw();
@@ -21,6 +22,7 @@ $VERSION = eval $VERSION;
 
 our $GMTdiff;
 our $Error;
+our %default; # loaded in from our config files
 our $MD5_loaded = 0;
 our $debug      = 0;
 our %CTypes     = (
@@ -1074,8 +1076,9 @@ sub _initialize {
     delete $self->{'_buffer'};
     $self->{'debug'} = 0;
     $self->{'proto'} = (getprotobyname('tcp'))[2];
+
     $self->{'port'}  = getservbyname('smtp', 'tcp') || 25
-        if not defined $self->{'port'};
+        unless $self->{'port'};
 
     $self->{'boundary'} = 'Message-Boundary-by-Mail-Sender-' . time();
     $self->{'multipart'}   = 'mixed';    # default is multipart/mixed
@@ -1083,20 +1086,19 @@ sub _initialize {
 
     $self->{'client'} = $local_name;
 
-    # Copy defaults from %Mail::Sender::default
-    my $key;
-    foreach $key (keys %Mail::Sender::default) {
-        $self->{lc $key} = $Mail::Sender::default{$key};
+    # Copy defaults from %default
+    foreach my $key (keys %default) {
+        $self->{lc $key} = $default{$key};
     }
 
     if (@_ != 0) {
         if (ref $_[0] eq 'HASH') {
             my $hash = $_[0];
-            foreach $key (keys %$hash) {
+            foreach my $key (keys %$hash) {
                 $self->{lc $key} = $hash->{$key};
             }
             $self->{'reply'} = $self->{'replyto'}
-                if (defined $self->{'replyto'} and !defined $self->{'reply'});
+                if ($self->{'replyto'} and !$self->{'reply'});
         }
         else {
             (
@@ -1110,25 +1112,25 @@ sub _initialize {
     $self->{'fromaddr'}  = $self->{'from'};
     $self->{'replyaddr'} = $self->{'reply'};
 
-    $self->_prepare_addresses('to')  if defined $self->{'to'};
-    $self->_prepare_addresses('cc')  if defined $self->{'cc'};
-    $self->_prepare_addresses('bcc') if defined $self->{'bcc'};
+    $self->_prepare_addresses('to')  if $self->{'to'};
+    $self->_prepare_addresses('cc')  if $self->{'cc'};
+    $self->_prepare_addresses('bcc') if $self->{'bcc'};
 
     $self->_prepare_ESMTP() if defined $self->{'esmtp'};
 
-    $self->{'fromaddr'} =~ s/.*<([^\s]*?)>/$1/
-        if ($self->{'fromaddr'});    # get from email address
-    if (defined $self->{'replyaddr'} and $self->{'replyaddr'}) {
+    # get from email address
+    $self->{'fromaddr'} =~ s/.*<([^\s]*?)>/$1/ if ($self->{'fromaddr'});
+
+    if ($self->{'replyaddr'}) {
         $self->{'replyaddr'} =~ s/.*<([^\s]*?)>/$1/;   # get reply email address
         $self->{'replyaddr'} =~ s/^([^\s]+).*/$1/;     # use first address
     }
 
-    if (defined $self->{'smtp'}) {
+    if ($self->{'smtp'}) {
         $self->{'smtp'} =~ s/^\s+//g;    # remove spaces around $smtp
         $self->{'smtp'} =~ s/\s+$//g;
 
-        $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
-        if (!defined($self->{'smtpaddr'})) {
+        unless ($self->{'smtpaddr'} = Socket::inet_aton($self->{'smtp'})) {
             return $self->Error(_HOSTNOTFOUND($self->{'smtp'}));
         }
         $self->{'smtpaddr'} = $1 if ($self->{'smtpaddr'} =~ /(.*)/s);  # Untaint
@@ -1136,7 +1138,7 @@ sub _initialize {
 
     $self->{'boundary'} =~ tr/=/-/ if defined $self->{'boundary'};
 
-    $self->_prepare_headers() if (exists $self->{'headers'});
+    $self->_prepare_headers() if defined $self->{'headers'};
 
     return $self;
 }
@@ -1273,7 +1275,7 @@ sub Error {
         delete $self->{'_data'};
         ($self->{'error'}, $self->{'error_msg'}) = @_;
     }
-    if ($self->{'die_on_errors'} or $self->{'on_errors'} eq 'die') {
+    if ($self->{'die_on_errors'} or ($self->{on_errors} && $self->{'on_errors'} eq 'die')) {
         die $self->{'error_msg'} . "\n";
     }
     elsif (exists $self->{'on_errors'}
@@ -1465,7 +1467,7 @@ sub Open {
     if ($changed{'smtp'}) {
         $self->{'smtp'} =~ s/^\s+//g;    # remove spaces around $smtp
         $self->{'smtp'} =~ s/\s+$//g;
-        $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
+        $self->{'smtpaddr'} = Socket::inet_aton($self->{'smtp'});
         if (!defined($self->{'smtpaddr'})) {
             return $self->Error(_HOSTNOTFOUND($self->{'smtp'}));
         }
@@ -1794,7 +1796,7 @@ sub OpenMultipart {
     if ($changed{'smtp'}) {
         $self->{'smtp'} =~ s/^\s+//g;    # remove spaces around $smtp
         $self->{'smtp'} =~ s/\s+$//g;
-        $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
+        $self->{'smtpaddr'} = Socket::inet_aton($self->{'smtp'});
         if (!defined($self->{'smtpaddr'})) {
             return $self->Error(_HOSTNOTFOUND($self->{'smtp'}));
         }
@@ -2938,7 +2940,7 @@ sub QueryAuthProtocols {
             $self->{'smtp'} = shift();
             $self->{'smtp'} =~ s/^\s+//g;    # remove spaces around $smtp
             $self->{'smtp'} =~ s/\s+$//g;
-            $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
+            $self->{'smtpaddr'} = Socket::inet_aton($self->{'smtp'});
             if (!defined($self->{'smtpaddr'})) {
                 return $self->Error(_HOSTNOTFOUND($self->{'smtp'}));
             }
@@ -3013,7 +3015,7 @@ sub TestServer {
             $self->{'smtp'} = shift();
             $self->{'smtp'} =~ s/^\s+//g;    # remove spaces around $smtp
             $self->{'smtp'} =~ s/\s+$//g;
-            $self->{'smtpaddr'} = inet_aton($self->{'smtp'});
+            $self->{'smtpaddr'} = Socket::inet_aton($self->{'smtp'});
             if (!defined($self->{'smtpaddr'})) {
                 return $self->Error(_HOSTNOTFOUND($self->{'smtp'}));
             }
