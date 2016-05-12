@@ -8,6 +8,8 @@ Revision history for {{$dist->name}}
     - Reorganized the PM files into the lib directory
     - Auto-generate MANIFEST using MANIFEST.SKIP from here on
     - Ensure all files EOL with \n rather than any combination of \n and \r\n
+    - Renamed many undocumented/private functions to names beginning with _
+    - Added many, many tests for coverage and to prevent regressions
 
 0.8.23  2014-07-15
     - fixed problems with long subjects containing accentuated characters
