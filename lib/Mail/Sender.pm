@@ -860,7 +860,7 @@ Keep in mind though that neither of those is guaranteed to work. Some servers/ma
 this feature and some users/admins may have disabled it. So it's possible that your mail was delivered and read,
 but you won't get any confirmation!
 
-=item ESMPT
+=item ESMTP
 
     ESMTP => {
         NOTIFY => 'SUCCESS,FAILURE,DELAY',
