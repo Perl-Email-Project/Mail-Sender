@@ -10,6 +10,7 @@ Revision history for {{$dist->name}}
     - Ensure all files EOL with \n rather than any combination of \n and \r\n
     - Renamed many undocumented/private functions to names beginning with _
     - Added many, many tests for coverage and to prevent regressions
+    - Updated Config.PL to modernize.
 
 0.8.23  2014-07-15
     - fixed problems with long subjects containing accentuated characters

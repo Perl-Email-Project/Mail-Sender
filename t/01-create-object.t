@@ -8,9 +8,6 @@ can_ok('Mail::Sender',
     qw(ClearErrors)
 );
 
-my %df = %Mail::Sender::default;
-is_deeply(\%df, \%Mail::Sender::default, 'default: got a good copy');
-
 # use actual defaults
 my $sender = Mail::Sender->new({tls_allowed => 0});
 isa_ok($sender, 'Mail::Sender', 'new: Got a proper object instance');
@@ -89,12 +86,10 @@ SKIP: {
             'Basic foo ; header too long to be set properly. Maybe you should reconsider',
         ),
     };
-    my $expected_string = 'Authorization: '.$headers->{Authorization};
-    $expected_string =~ s/(.{1,980}[;,])\s+(\S)/$1\x0D\x0A\t$2/g;
     $copy->{headers} = $headers;
     $copy->_prepare_headers();
     is_deeply($copy->{headers}, $headers, '_prepare_headers: too long headers: equal headers');
-    is($copy->{_headers}, $expected_string, '_prepare_headers: too long headers _headers string correct');
+    like($copy->{_headers}, qr/header too long/, '_prepare_headers: too long headers _headers string correct');
 
     $copy->{headers} = '';
     $copy->_prepare_headers();
