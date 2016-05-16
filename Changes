@@ -11,6 +11,7 @@ Revision history for {{$dist->name}}
     - Renamed many undocumented/private functions to names beginning with _
     - Added many, many tests for coverage and to prevent regressions
     - Updated Config.PL to modernize.
+    - Lazily load Win32API::Registry for ::CType::Win32
 
 0.8.23  2014-07-15
     - fixed problems with long subjects containing accentuated characters

@@ -674,8 +674,6 @@ sub _UNKNOWNENCODING {
 
 Mail::Sender - module for sending mails with attachments through an SMTP server
 
-Version 0.8.23
-
 =head1 SYNOPSIS
 
  use Mail::Sender;

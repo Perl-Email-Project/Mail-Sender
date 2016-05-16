@@ -2,8 +2,6 @@
 
 Mail::Sender - module for sending mails with attachments through an SMTP server
 
-Version 0.8.23
-
 # SYNOPSIS
 
     use Mail::Sender;
