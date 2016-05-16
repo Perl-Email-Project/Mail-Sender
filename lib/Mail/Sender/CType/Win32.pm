@@ -2,7 +2,7 @@ package Mail::Sender::Win32;
 
 use strict;
 use warnings;
-use Mail::Sender;
+use Mail::Sender ();
 
 my $error = do {
     local $@;
@@ -15,8 +15,10 @@ my $error = do {
 
 unless ( $error ) {
     no strict 'subs';
+    no warnings 'redefine';
     import Win32API::Registry qw(RegOpenKeyEx KEY_READ HKEY_CLASSES_ROOT RegQueryValueEx);
 
+    # replace the GuessCType sub with this one!
     *Mail::Sender::GuessCType = sub {
         my $ext = shift;
         $ext =~ s/^.*\././;

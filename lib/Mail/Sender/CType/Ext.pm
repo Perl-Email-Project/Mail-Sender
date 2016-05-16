@@ -1,4 +1,4 @@
-package Mail::Sender::Ext;
+package Mail::Sender::CType::Ext;
 
 use strict;
 use warnings;
