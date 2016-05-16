@@ -1,4 +1,4 @@
-package Mail::Sender::Win32;
+package Mail::Sender::CType::Win32;
 
 use strict;
 use warnings;
