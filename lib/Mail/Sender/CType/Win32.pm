@@ -1,17 +1,32 @@
-package Mail::Sender;
+package Mail::Sender::Win32;
+
 use strict;
 use warnings;
-use Win32API::Registry qw(RegOpenKeyEx RegQueryValueEx HKEY_CLASSES_ROOT);
+use Mail::Sender;
 
-sub GuessCType {
-    my $ext = shift;
-    $ext =~ s/^.*\././;
-    my ($key, $type, $data);
-    RegOpenKeyEx(HKEY_CLASSES_ROOT, $ext, 0, KEY_READ, $key)
-        or return 'application/octet-stream';
-    RegQueryValueEx($key, "Content Type", [], $type, $data, [])
-        or return 'application/octet-stream';
-    return $data || 'application/octet-stream';
+my $error = do {
+    local $@;
+    eval {
+        require Win32API::Registry;
+    };
+    $@;
+};
+
+
+unless ( $error ) {
+    no strict 'subs';
+    import Win32API::Registry qw(RegOpenKeyEx KEY_READ HKEY_CLASSES_ROOT RegQueryValueEx);
+
+    *Mail::Sender::GuessCType = sub {
+        my $ext = shift;
+        $ext =~ s/^.*\././;
+        my ($key, $type, $data);
+        RegOpenKeyEx(HKEY_CLASSES_ROOT, $ext, 0, KEY_READ, $key)
+            or return 'application/octet-stream';
+        RegQueryValueEx($key, "Content Type", [], $type, $data, [])
+            or return 'application/octet-stream';
+        return $data || 'application/octet-stream';
+    };
 }
 
 1;

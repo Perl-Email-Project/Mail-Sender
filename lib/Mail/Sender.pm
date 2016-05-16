@@ -769,7 +769,7 @@ these addresses will not be visible in the mail!
 C<>=> the IP or domain address of your SMTP (mail) server
 
 This is the name of your LOCAL mail server, do NOT try
-to contact directly the adressee's mailserver! That would be slow and buggy,
+to contact directly the addressee's mail server! That would be slow and buggy,
 your script should only pass the messages to the nearest mail server and leave
 the rest to it. Keep in mind that the recipient's server may be down temporarily.
 
@@ -836,7 +836,7 @@ C<>=> the charset of the single part message or the body of the multipart one
 C<>=> the name of the client computer.
 
 During the connection you send
-the mailserver your computer's name. By default Mail::Sender sends
+the mail server your computer's name. By default Mail::Sender sends
 C<(gethostbyname 'localhost')[0]>.
 If that is not the address you need, you can specify a different one.
 
@@ -944,7 +944,7 @@ the password used to login to the server
 
 =item authdomain
 
-the domain name. Used optionaly by the NTLM authentication.
+the domain name. Used optionally by the NTLM authentication.
 
 Other authentication protocols may use other options as well.
 They should all start with "auth" though.
@@ -1145,7 +1145,7 @@ sub _initialize {
 
 sub GuessCType {
     my $file = shift;
-    if (defined $file && $file =~ /\.([^.]+)$/) {
+    if (defined $file && $file =~ /\.(.*)$/) {
         return $CTypes{uc($1)} || 'application/octet-stream';
     }
     return 'application/octet-stream';
@@ -2014,7 +2014,7 @@ the parameters passed to the "C<$Sender= Mail::Sender->new(...)>";
 See C<new Mail::Sender> for info about the parameters.
 
 The module was made so that you could create an object initialized with
-all the necesary options and then send several messages without need to
+all the necessary options and then send several messages without need to
 specify the SMTP server and others each time. If you need to send only
 one mail using MailMsg() or MailFile() you do not have to create a named
 object and then call the method. You may do it like this :
@@ -2384,14 +2384,14 @@ Please see the examples below.
 
 =item encoding
 
-the encoding used for this part of message. Eg. Base64, Uuencode, 7BIT
+the encoding used for this part of message. E.g. Base64, Uuencode, 7BIT
 ...
 
 Defaults to "7BIT".
 
 =item disposition
 
-This parts disposition. Eg: 'attachment; filename="send.pl"'.
+This parts disposition. E.g.: 'attachment; filename="send.pl"'.
 
 Defaults to "attachment". If you specify "none" or "", the
 Content-Disposition: line will not be included in the headers.
@@ -2573,14 +2573,14 @@ Defaults to "application/octet-stream".
 
 =item encoding
 
-the encoding used for this part of message. Eg. Base64, Uuencode, 7BIT
+the encoding used for this part of message. E.g. Base64, Uuencode, 7BIT
 ...
 
 Defaults to "Base64".
 
 =item disposition
 
-This parts disposition. Eg: 'attachment; filename="send.pl"'. If you use
+This parts disposition. E.g.: 'attachment; filename="send.pl"'. If you use
 'attachment; filename=*' the * will be replaced by the respective names
 of the sent files.
 
@@ -2813,7 +2813,7 @@ if the "keepconnection" was specified. You should only keep the connection open 
 message immediately. And you should not keep it open for hundreds of emails even if you do send them all in a row.
 
 This method should be called automatically when destructing the object, but you should not rely on it. If you want to be sure
-your message WAS processed by the SMTP server you SHOULD call Close() explicitely.
+your message WAS processed by the SMTP server you SHOULD call Close() explicitly.
 
 Returns the Mail::Sender object if successful, negative error code if not, zero if $sender was not connected at all.
 The zero usually means that the Open/OpenMultipart failed and you did not test its return value.
@@ -2915,8 +2915,8 @@ sub MessageID {
     @protocols = $sender->QueryAuthProtocols( $smtpserver);
 
 
-Queryies the server (specified either in the default options for Mail::Sender,
-the "new Mail::Sender" command or as a parameter to this method for
+Queries the server (specified either in the default options for Mail::Sender,
+the "Mail::Sender->new" command or as a parameter to this method for
 the authentication protocols it supports.
 
 =cut
@@ -3232,7 +3232,7 @@ it replaces the builtin GuessCType() subroutine with a better one:
 
 The module computes the local vs. GMT time difference to include in the timestamps
 added into the message headers. As the time difference may change due to summer
-savings time changes you may want to reset the time difference ocassionaly
+savings time changes you may want to reset the time difference occasionally
 in long running programs.
 
 =head1 CONFIG
@@ -3240,8 +3240,8 @@ in long running programs.
 If you create a file named Sender.config in the same directory where
 Sender.pm resides, this file will be "require"d as soon as you "use
 Mail::Sender" in your script. Of course the Sender.config MUST "return a
-true value", that is it has to be succesfully compiled and the last
-statement must return a true value. You may use this to forbide the use
+true value", that is it has to be successfully compiled and the last
+statement must return a true value. You may use this to forbid the use
 of Mail::Sender to some users.
 
 You may define the default settings for new Mail::Sender objects and do
@@ -3251,7 +3251,7 @@ The default options are stored in hash %Mail::Sender::default. You may
 use all the options you'd use in C<new>, C<Open>, C<OpenMultipart>,
 C<MailMsg> or C<MailFile>.
 
- Eg.
+ E.g.
   %default = (
     smtp => 'mail.yourhost.cz',
     from => getlogin.'yourhost.cz',
@@ -3318,7 +3318,7 @@ object properties.
 $self->{'from'} is the address as it will appear in the mail, that is
 it may include the full name of the user or any other comment
 ( "Jan Krynicky <jenda@krynicky.cz>" for example), while the
-$self->{'fromaddr'} is realy just the email address per se and it will
+$self->{'fromaddr'} is really just the email address per se and it will
 be used in conversation with the SMTP server. It must be without
 comments ("jenda@krynicky.cz" for example)!
 
@@ -3340,7 +3340,7 @@ If you need to be able to send a message with both the sender's and recipient's 
 need to somehow authenticate to the server. You may need the help of the mail server's administrator
 to find out what username and password and/or what authentication protocol are you supposed to use.
 
-There are many authentication protocols defined for ESTMP, Mail::Sender natively supports
+There are many authentication protocols defined for ESTMP, Mail::Sender supports
 only PLAIN, LOGIN, CRAM-MD5 and NTLM (please see the docs for C<new Mail::Sender>).
 
 If you want to know what protocols are supported by your server you may get the list by this:
@@ -3368,7 +3368,7 @@ It can access these properties:
     $obj->{'authpwd'} : the password
     $obj->{auth...} : all unknown parameters passed to the constructor or the mail
         opening/creation methods are preserved in the object. If the protocol requires
-        any other options, please use names starting with "auth". Eg. "authdomain", ...
+        any other options, please use names starting with "auth". E.g. "authdomain", ...
     $obj->{'error'} : this should be set to a negative error number. Please use numbers
         below -1000 for custom errors.
     $obj->{'error_msg'} : this should be set to the error message
@@ -3747,7 +3747,7 @@ Please keep in mind that the image name is unimportant, it's the Content-ID what
     }
     or die "Cannot send mail: $Mail::Sender::Error\n";
 
-=head2 Sending message with plaintext and HTML alternatives
+=head2 Sending message with plain text and HTML alternatives
 
     use Mail::Sender;
 
@@ -3775,7 +3775,7 @@ Please keep in mind that the image name is unimportant, it's the Content-ID what
         ->Close();
     } or print "Error sending mail: $Mail::Sender::Error\n";
 
-=head2 Sending message with plaintext and HTML alternatives with inline images
+=head2 Sending message with plain text and HTML alternatives with inline images
 
     use Mail::Sender;
 
@@ -3871,7 +3871,7 @@ or
 
 =head3 Forwarding the messages created by Mail::Sender removes accents. Why?
 
-The most likely colprit is missing or incorrect charset specified for the body or
+The most likely culprit is missing or incorrect charset specified for the body or
 a part of the email. You should add something like
 
     charset => 'iso-8859-1',
@@ -3978,7 +3978,7 @@ have to find the right one yourself :-)
 
 This module is based on SendMail.pm Version : 1.21 that appeared in
 Perl-Win32-Users@activeware.com mailing list. I don't remember the name
-of the poster and it's not mentioned in the script. Thank you mr. C<undef>.
+of the poster and it's not mentioned in the script. Thank you, Mr. C<undef>.
 
 =head1 AUTHOR
 

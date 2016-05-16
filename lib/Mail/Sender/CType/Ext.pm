@@ -1,4 +1,5 @@
-package Mail::Sender;
+package Mail::Sender::Ext;
+
 use strict;
 use warnings;
 use Mail::Sender;
