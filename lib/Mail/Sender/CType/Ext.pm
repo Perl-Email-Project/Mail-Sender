@@ -214,5 +214,37 @@ use Mail::Sender;
 );
 
 1;
+__END__
+
+=encoding UTF-8
+
+=head1 NAME
+
+Mail::Sender::CType::Ext - Alter how we find the MIME type of a file.
+
+=head1 SYNOPSIS
+
+    use Mail::Sender;
+    use Mail::Sender::CType::Ext;
+
+    # use the registry to find the MIME Type
+    my $type = Mail::Sender::GuessCType("foo.txt");
+
+=head1 DESCRIPTION
+
+This exists solely to extend the number of known extensions for the MIME type
+guessing in L<Mail::Sender/"GuessCType">.
+
+=head1 CONTRIBUTORS
+
+=over
+
+=item *
+
+Guillaume A. <F<webmaster@patchworks-et-boutons.com>>
+
+=back
+
+=cut
 
 # list of extensions by "Guillaume A." <webmaster@patchworks-et-boutons.com>
