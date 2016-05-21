@@ -30,6 +30,11 @@ SKIP: {
     isa_ok($copy, 'Mail::Sender', 'new: got a copy');
     $copy->{to} = 'capoeirab@cpan.org';
     isnt($copy->{to}, $sender->{to}, 'copy and original now differ');
+    # make a copy with altered 'to'
+    my $copy2 = $copy->new({to=>'capoeirab2@cpan.org'});
+    isa_ok($copy2, 'Mail::Sender', 'new: got a copy of the copy');
+    is($copy->{to}, 'capoeirab@cpan.org', 'copy to: right value');
+    is($copy2->{to}, 'capoeirab2@cpan.org', 'copy2 to: right value');
 
     # prepare addresses
     my $addresses = ['capoeirab@cpan.org', 'foo@bar.com'];
