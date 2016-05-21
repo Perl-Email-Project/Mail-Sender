@@ -127,6 +127,26 @@
       },
       "plugins" : [
          {
+            "class" : "Dist::Zilla::Plugin::GatherDir",
+            "config" : {
+               "Dist::Zilla::Plugin::GatherDir" : {
+                  "exclude_filename" : [
+                     "META.json",
+                     "Makefile.PL",
+                     "README.md"
+                  ],
+                  "exclude_match" : [],
+                  "follow_symlinks" : 0,
+                  "include_dotfiles" : 0,
+                  "prefix" : "",
+                  "prune_directory" : [],
+                  "root" : "."
+               }
+            },
+            "name" : "@Starter/GatherDir",
+            "version" : "5.047"
+         },
+         {
             "class" : "Dist::Zilla::Plugin::PruneCruft",
             "name" : "@Starter/PruneCruft",
             "version" : "5.047"
@@ -275,26 +295,6 @@
          {
             "class" : "Dist::Zilla::Plugin::UploadToCPAN",
             "name" : "@Starter/UploadToCPAN",
-            "version" : "5.047"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::GatherDir",
-            "config" : {
-               "Dist::Zilla::Plugin::GatherDir" : {
-                  "exclude_filename" : [
-                     "META.json",
-                     "Makefile.PL",
-                     "README.md"
-                  ],
-                  "exclude_match" : [],
-                  "follow_symlinks" : 0,
-                  "include_dotfiles" : 0,
-                  "prefix" : "",
-                  "prune_directory" : [],
-                  "root" : "."
-               }
-            },
-            "name" : "GatherDir",
             "version" : "5.047"
          },
          {
@@ -533,7 +533,7 @@
          {
             "class" : "Dist::Zilla::Plugin::CopyFilesFromBuild",
             "name" : "CopyFilesFromBuild",
-            "version" : "0.161150"
+            "version" : "0.161350"
          },
          {
             "class" : "Dist::Zilla::Plugin::FinderCode",
