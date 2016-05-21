@@ -21,9 +21,13 @@ my %WriteMakefileArgs = (
     "Encode" => 0,
     "Exporter" => 0,
     "File::Basename" => 0,
+    "IO::Handle" => 0,
     "IO::Socket::INET" => 0,
     "MIME::Base64" => 0,
     "MIME::QuotedPrint" => 0,
+    "Socket" => 0,
+    "Symbol" => 0,
+    "Tie::Handle" => 0,
     "Time::Local" => 0,
     "Try::Tiny" => "0.24",
     "base" => 0,
@@ -50,16 +54,26 @@ my %FallbackPrereqs = (
   "ExtUtils::MakeMaker" => 0,
   "File::Basename" => 0,
   "File::Spec" => 0,
+  "IO::Handle" => 0,
   "IO::Socket::INET" => 0,
   "MIME::Base64" => 0,
   "MIME::QuotedPrint" => 0,
+  "Socket" => 0,
+  "Symbol" => 0,
   "Test::More" => "0.88",
+  "Tie::Handle" => 0,
   "Time::Local" => 0,
   "Try::Tiny" => "0.24",
   "base" => 0,
   "strict" => 0,
   "warnings" => 0
 );
+
+# inserted by Dist::Zilla::Plugin::DynamicPrereqs 0.029
+if ($^O eq 'win32') {
+requires('Win32API::Registry','0');
+}
+
 
 
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
@@ -72,3 +86,22 @@ delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
   unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
 
 WriteMakefile(%WriteMakefileArgs);
+
+# inserted by Dist::Zilla::Plugin::DynamicPrereqs 0.029
+sub _add_prereq {
+  my ($mm_key, $module, $version_or_range) = @_;
+  warn "$module already exists in $mm_key -- need to do a sane metamerge!"
+    if exists $WriteMakefileArgs{$mm_key}{$module}
+      and $WriteMakefileArgs{$mm_key}{$module} ne ($version_or_range || 0);
+  warn "$module already exists in FallbackPrereqs -- need to do a sane metamerge!"
+    if exists $FallbackPrereqs{$module} and $FallbackPrereqs{$module} ne ($version_or_range || 0);
+  $WriteMakefileArgs{$mm_key}{$module} = $FallbackPrereqs{$module} = $version_or_range || 0;
+  return;
+}
+
+sub requires { goto &runtime_requires }
+
+sub runtime_requires {
+  my ($module, $version_or_range) = @_;
+  _add_prereq(PREREQ_PM => $module, $version_or_range);
+}

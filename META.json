@@ -3,7 +3,7 @@
    "author" : [
       "Jan Krynick\u00fd <Jenda@Krynicky.cz>"
    ],
-   "dynamic_config" : 0,
+   "dynamic_config" : 1,
    "generated_by" : "Dist::Zilla version 5.047, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "perl_5"
@@ -48,7 +48,10 @@
       },
       "runtime" : {
          "recommends" : {
+            "Authen::NTLM" : "0",
+            "Digest::HMAC_MD5" : "0",
             "IO::Socket::SSL" : "0",
+            "Mozilla::CA" : "0",
             "Net::SSLeay" : "0"
          },
          "requires" : {
@@ -56,9 +59,13 @@
             "Encode" : "0",
             "Exporter" : "0",
             "File::Basename" : "0",
+            "IO::Handle" : "0",
             "IO::Socket::INET" : "0",
             "MIME::Base64" : "0",
             "MIME::QuotedPrint" : "0",
+            "Socket" : "0",
+            "Symbol" : "0",
+            "Tie::Handle" : "0",
             "Time::Local" : "0",
             "Try::Tiny" : "0.24",
             "base" : "0",
@@ -84,20 +91,20 @@
          "file" : "lib/Mail/Sender.pm",
          "version" : "0.900"
       },
+      "Mail::Sender::CType::Ext" : {
+         "file" : "lib/Mail/Sender/CType/Ext.pm",
+         "version" : "0.900"
+      },
+      "Mail::Sender::CType::Win32" : {
+         "file" : "lib/Mail/Sender/CType/Win32.pm",
+         "version" : "0.900"
+      },
       "Mail::Sender::DBIO" : {
          "file" : "lib/Mail/Sender.pm",
          "version" : "0.900"
       },
-      "Mail::Sender::Ext" : {
-         "file" : "lib/Mail/Sender/CType/Ext.pm",
-         "version" : "0.900"
-      },
       "Mail::Sender::IO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900"
-      },
-      "Mail::Sender::Win32" : {
-         "file" : "lib/Mail/Sender/CType/Win32.pm",
          "version" : "0.900"
       }
    },
@@ -222,7 +229,9 @@
                   "script_finder" : [
                      ":PerlExecFiles"
                   ],
-                  "skips" : []
+                  "skips" : [
+                     "Win32"
+                  ]
                }
             },
             "name" : "@Starter/Test::Compile",
@@ -269,11 +278,6 @@
             "version" : "5.047"
          },
          {
-            "class" : "Dist::Zilla::Plugin::NextRelease",
-            "name" : "NextRelease",
-            "version" : "5.047"
-         },
-         {
             "class" : "Dist::Zilla::Plugin::GatherDir",
             "config" : {
                "Dist::Zilla::Plugin::GatherDir" : {
@@ -302,6 +306,27 @@
             },
             "name" : "Markdown_Readme",
             "version" : "0.161170"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::Prereqs::FromCPANfile",
+            "name" : "Prereqs::FromCPANfile",
+            "version" : "0.08"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::DynamicPrereqs",
+            "config" : {
+               "Dist::Zilla::Role::ModuleMetadata" : {
+                  "Module::Metadata" : "1.000031",
+                  "version" : "0.003"
+               }
+            },
+            "name" : "DynamicPrereqs",
+            "version" : "0.029"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::NextRelease",
+            "name" : "NextRelease",
+            "version" : "5.047"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Contributors",
@@ -412,6 +437,11 @@
             "version" : "0.02"
          },
          {
+            "class" : "Dist::Zilla::Plugin::CheckChangesHasContent",
+            "name" : "CheckChangesHasContent",
+            "version" : "0.008"
+         },
+         {
             "class" : "Dist::Zilla::Plugin::Test::ChangesHasContent",
             "name" : "Test::ChangesHasContent",
             "version" : "0.008"
@@ -451,8 +481,10 @@
                   "stopwords" : [
                      "BCC",
                      "CPAN",
+                     "ClearErrors",
                      "GetHandle",
                      "GuessCType",
+                     "Guillaume",
                      "Krynicky",
                      "MailFile",
                      "MailMsg",
@@ -469,67 +501,34 @@
                      "SendLineEnc",
                      "SendLineEx",
                      "Siqueira",
+                     "TLS",
+                     "auth",
+                     "authdomain",
+                     "authid",
+                     "authpwd",
+                     "bcc",
                      "blakley",
+                     "createmessageid",
                      "ctype",
                      "endpart",
                      "envid",
                      "esmpt",
                      "estmp",
                      "github",
+                     "keepconnection",
                      "messageid",
                      "msg",
                      "multipart",
-                     "qmail"
+                     "multipart",
+                     "qmail",
+                     "replyto",
+                     "smtp"
                   ],
                   "wordlist" : "Pod::Wordlist"
                }
             },
             "name" : "Test::PodSpelling",
             "version" : "2.007000"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Prereqs",
-            "config" : {
-               "Dist::Zilla::Plugin::Prereqs" : {
-                  "phase" : "runtime",
-                  "type" : "requires"
-               }
-            },
-            "name" : "Prereqs",
-            "version" : "5.047"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Prereqs",
-            "config" : {
-               "Dist::Zilla::Plugin::Prereqs" : {
-                  "phase" : "runtime",
-                  "type" : "recommends"
-               }
-            },
-            "name" : "RuntimeRecommends",
-            "version" : "5.047"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Prereqs",
-            "config" : {
-               "Dist::Zilla::Plugin::Prereqs" : {
-                  "phase" : "test",
-                  "type" : "requires"
-               }
-            },
-            "name" : "TestRequires",
-            "version" : "5.047"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Prereqs",
-            "config" : {
-               "Dist::Zilla::Plugin::Prereqs" : {
-                  "phase" : "develop",
-                  "type" : "requires"
-               }
-            },
-            "name" : "DevelopRequires",
-            "version" : "5.047"
          },
          {
             "class" : "Dist::Zilla::Plugin::CopyFilesFromBuild",

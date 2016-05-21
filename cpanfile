@@ -7,10 +7,13 @@ on 'runtime' => sub {
     requires 'Encode';
     requires 'Exporter';
     requires 'File::Basename';
+    requires 'IO::Handle';
     requires 'IO::Socket::INET';
     requires 'MIME::Base64';
     requires 'MIME::QuotedPrint';
     requires 'Socket';
+    requires 'Symbol';
+    requires 'Tie::Handle';
     requires 'Time::Local';
     requires 'Try::Tiny';
     requires 'Win32API::Registry' if $^O eq 'Win32';
