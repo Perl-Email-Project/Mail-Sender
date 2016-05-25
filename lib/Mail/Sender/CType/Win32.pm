@@ -5,6 +5,8 @@ use warnings;
 use Mail::Sender ();
 use Win32API::Registry qw(RegOpenKeyEx KEY_READ HKEY_CLASSES_ROOT RegQueryValueEx);
 
+our $VERSION = '0.900001'; # VERSION
+
 no warnings 'redefine';
 
 *Mail::Sender::GuessCType = \&GuessCType;

@@ -2,6 +2,13 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+    - TRIAL RELEASE
+
+    - Fixed locale specific testing
+
+0.900     2016-05-24
+    ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+    - TRIAL RELEASE
 
     - Fixed the Changes file
     - Added some git helper files for the repo

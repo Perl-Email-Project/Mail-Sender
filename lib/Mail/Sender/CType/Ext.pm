@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Mail::Sender;
 
+our $VERSION = '0.900001'; # VERSION
+
 %Mail::Sender::CTypes = (
 
 #-------------------------------------<TEXT>-----
