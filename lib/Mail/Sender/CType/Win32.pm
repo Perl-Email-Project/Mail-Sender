@@ -5,7 +5,7 @@ use warnings;
 use Mail::Sender ();
 use Win32API::Registry qw(RegOpenKeyEx KEY_READ HKEY_CLASSES_ROOT RegQueryValueEx);
 
-our $VERSION = '0.900001'; # VERSION
+our $VERSION = '0.900002'; # VERSION
 
 no warnings 'redefine';
 

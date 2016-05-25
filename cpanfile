@@ -16,7 +16,7 @@ on 'runtime' => sub {
     requires 'Tie::Handle';
     requires 'Time::Local';
     requires 'Try::Tiny';
-    requires 'Win32API::Registry' if $^O eq 'Win32';
+    requires 'Win32API::Registry' if $^O eq 'MSWin32';
 
     recommends 'Authen::NTLM';
     recommends 'Digest::HMAC_MD5';

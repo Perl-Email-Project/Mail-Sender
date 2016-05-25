@@ -318,15 +318,14 @@
             "version" : "0.08"
          },
          {
-            "class" : "Dist::Zilla::Plugin::DynamicPrereqs",
+            "class" : "Dist::Zilla::Plugin::OSPrereqs",
             "config" : {
-               "Dist::Zilla::Role::ModuleMetadata" : {
-                  "Module::Metadata" : "1.000031",
-                  "version" : "0.003"
+               "Dist::Zilla::Plugin::OSPrereqs" : {
+                  "os" : "MSWin32"
                }
             },
-            "name" : "DynamicPrereqs",
-            "version" : "0.029"
+            "name" : "MSWin32",
+            "version" : "0.007"
          },
          {
             "class" : "Dist::Zilla::Plugin::NextRelease",
