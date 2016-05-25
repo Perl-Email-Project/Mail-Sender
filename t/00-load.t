@@ -87,7 +87,7 @@ can_ok('Mail::Sender',
     $num = undef; $err = undef;
     ($num,$err) = Mail::Sender::_CONNFAILED('');
     is($num, -3, '_CONNFAILED: proper number');
-    is($err, 'connect() failed: Input/output error', '_CONNFAILED: proper string');
+    like($err, qr/^connect\(\) failed: /, '_CONNFAILED: proper string');
 
     $num = undef; $err = undef;
     ($num,$err) = Mail::Sender::_SERVNOTAVAIL('');
@@ -237,12 +237,12 @@ can_ok('Mail::Sender',
     $num = undef; $err = undef;
     ($num,$err) = Mail::Sender::_FILECANTREAD();
     is($num, -21, '_FILECANTREAD: proper number');
-    is($err, 'File "" cannot be read: No such file or directory', '_FILECANTREAD: proper string');
+    like($err, qr/^File "" cannot be read: /, '_FILECANTREAD: proper string');
 
     $num = undef; $err = undef;
     ($num,$err) = Mail::Sender::_FILECANTREAD('crappola');
     is($num, -21, '_FILECANTREAD: proper number');
-    is($err, 'File "crappola" cannot be read: No such file or directory', '_FILECANTREAD: proper string');
+    like($err, qr/^File "crappola" cannot be read: /, '_FILECANTREAD: proper string');
 
     $num = undef; $err = undef;
     ($num,$err) = Mail::Sender::_DEBUGFILE();
