@@ -89,23 +89,23 @@
    "provides" : {
       "Mail::Sender" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900002"
+         "version" : "0.900003"
       },
       "Mail::Sender::CType::Ext" : {
          "file" : "lib/Mail/Sender/CType/Ext.pm",
-         "version" : "0.900002"
+         "version" : "0.900003"
       },
       "Mail::Sender::CType::Win32" : {
          "file" : "lib/Mail/Sender/CType/Win32.pm",
-         "version" : "0.900002"
+         "version" : "0.900003"
       },
       "Mail::Sender::DBIO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900002"
+         "version" : "0.900003"
       },
       "Mail::Sender::IO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900002"
+         "version" : "0.900003"
       }
    },
    "release_status" : "stable",
@@ -120,7 +120,7 @@
          "web" : "https://github.com/Perl-Email-Project/Mail-Sender"
       }
    },
-   "version" : "0.900002",
+   "version" : "0.900003",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.024000"
@@ -371,7 +371,7 @@
                }
             },
             "name" : "@Git/Check",
-            "version" : "2.036"
+            "version" : "2.039"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Commit",
@@ -396,7 +396,7 @@
                }
             },
             "name" : "@Git/Commit",
-            "version" : "2.036"
+            "version" : "2.039"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Tag",
@@ -405,7 +405,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v0.900002",
+                  "tag" : "v0.900003",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },
@@ -417,7 +417,7 @@
                }
             },
             "name" : "@Git/Tag",
-            "version" : "2.036"
+            "version" : "2.039"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Push",
@@ -433,7 +433,7 @@
                }
             },
             "name" : "@Git/Push",
-            "version" : "2.036"
+            "version" : "2.039"
          },
          {
             "class" : "Dist::Zilla::Plugin::CheckChangeLog",
@@ -443,12 +443,12 @@
          {
             "class" : "Dist::Zilla::Plugin::CheckChangesHasContent",
             "name" : "CheckChangesHasContent",
-            "version" : "0.008"
+            "version" : "0.010"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::ChangesHasContent",
             "name" : "Test::ChangesHasContent",
-            "version" : "0.008"
+            "version" : "0.010"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Kwalitee",
