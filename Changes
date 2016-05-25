@@ -4,6 +4,12 @@ Revision history for {{$dist->name}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
     - TRIAL RELEASE
 
+    - 
+
+0.900002  2016-05-25
+    ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+    - TRIAL RELEASE
+
     - Fixed conditional dependencies
 
 0.900001  2016-05-25
