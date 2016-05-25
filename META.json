@@ -89,26 +89,26 @@
    "provides" : {
       "Mail::Sender" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900001"
+         "version" : "0.900002"
       },
       "Mail::Sender::CType::Ext" : {
          "file" : "lib/Mail/Sender/CType/Ext.pm",
-         "version" : "0.900001"
+         "version" : "0.900002"
       },
       "Mail::Sender::CType::Win32" : {
          "file" : "lib/Mail/Sender/CType/Win32.pm",
-         "version" : "0.900001"
+         "version" : "0.900002"
       },
       "Mail::Sender::DBIO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900001"
+         "version" : "0.900002"
       },
       "Mail::Sender::IO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.900001"
+         "version" : "0.900002"
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/Perl-Email-Project/Mail-Sender/issues"
@@ -120,7 +120,7 @@
          "web" : "https://github.com/Perl-Email-Project/Mail-Sender"
       }
    },
-   "version" : "0.900001",
+   "version" : "0.900002",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.024000"
@@ -406,7 +406,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v0.900001",
+                  "tag" : "v0.900002",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },
@@ -594,7 +594,7 @@
       "zilla" : {
          "class" : "Dist::Zilla::Dist::Builder",
          "config" : {
-            "is_trial" : "1"
+            "is_trial" : "0"
          },
          "version" : "6.005"
       }

@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+    - 
+
+0.900001  2016-05-25
+    ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
     - TRIAL RELEASE
 
     - Fixed locale specific testing
