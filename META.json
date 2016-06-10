@@ -527,7 +527,7 @@
                }
             },
             "name" : "Test::PodSpelling",
-            "version" : "2.007000"
+            "version" : "2.007002"
          },
          {
             "class" : "Dist::Zilla::Plugin::CopyFilesFromBuild",
