@@ -3,6 +3,11 @@ Revision history for {{$dist->name}}
 {{$NEXT}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
 
+    - 
+
+0.900003  2016-06-10
+    ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+
     - Fixed conditional dependencies
     - Fixed locale specific testing
     - Fixed the Changes file
