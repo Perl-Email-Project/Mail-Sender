@@ -371,7 +371,7 @@
                }
             },
             "name" : "@Git/Check",
-            "version" : "2.039"
+            "version" : "2.036"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Commit",
@@ -396,7 +396,7 @@
                }
             },
             "name" : "@Git/Commit",
-            "version" : "2.039"
+            "version" : "2.036"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Tag",
@@ -417,7 +417,7 @@
                }
             },
             "name" : "@Git/Tag",
-            "version" : "2.039"
+            "version" : "2.036"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Push",
@@ -433,7 +433,7 @@
                }
             },
             "name" : "@Git/Push",
-            "version" : "2.039"
+            "version" : "2.036"
          },
          {
             "class" : "Dist::Zilla::Plugin::CheckChangeLog",
@@ -443,12 +443,12 @@
          {
             "class" : "Dist::Zilla::Plugin::CheckChangesHasContent",
             "name" : "CheckChangesHasContent",
-            "version" : "0.010"
+            "version" : "0.008"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::ChangesHasContent",
             "name" : "Test::ChangesHasContent",
-            "version" : "0.010"
+            "version" : "0.008"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Kwalitee",
@@ -527,7 +527,7 @@
                }
             },
             "name" : "Test::PodSpelling",
-            "version" : "2.007002"
+            "version" : "2.007000"
          },
          {
             "class" : "Dist::Zilla::Plugin::CopyFilesFromBuild",
