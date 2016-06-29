@@ -340,7 +340,7 @@ sub login {
   # change all characters except letters, numbers and underscores to underscores
     $auth =~ tr/a-zA-Z0-9_/_/c;
     no strict qw'subs refs';
-    my $method = "Mail::Sender::$auth";
+    my $method = "Mail::Sender::Auth::$auth";
     $method->($self);
 }
 
@@ -1079,7 +1079,7 @@ sub Open {
     $self->{'socket'} = $s;
 
     $_ = send_cmd $s,
-        "MAIL FROM:<$self->{'fromaddr'}>$self->{esmtp}{_MAIL_FROM}";
+        "MAIL FROM:<".($self->{'fromaddr'}||'').">".($self->{esmtp}{_MAIL_FROM}||'');
     if (!/^[123]/) { return $self->Error(_COMMERROR($_)); }
 
     {
@@ -1124,7 +1124,7 @@ sub Open {
                     $_ = send_cmd $s, "RCPT TO:<$1>$self->{esmtp}{_RCPT_TO}";
                 }
                 else {
-                    $_ = send_cmd $s, "RCPT TO:<$addr>$self->{esmtp}{_RCPT_TO}";
+                    $_ = send_cmd $s, "RCPT TO:<".($addr||'').">".($self->{esmtp}{_RCPT_TO}||'');
                 }
                 if (!/^[123]/) {
                     return $self->Error(
