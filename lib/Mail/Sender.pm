@@ -17,7 +17,7 @@ use Time::Local       ();
 our @EXPORT    = qw();
 our @EXPORT_OK = qw(@error_str GuessCType);
 
-our $VERSION = '0.901'; # VERSION
+our $VERSION = '0.902'; # VERSION
 $VERSION = eval $VERSION;
 
 our $GMTdiff;

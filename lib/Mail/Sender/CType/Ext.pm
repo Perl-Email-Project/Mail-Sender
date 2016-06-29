@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Mail::Sender;
 
-our $VERSION = '0.901'; # VERSION
+our $VERSION = '0.902'; # VERSION
 
 %Mail::Sender::CTypes = (
 

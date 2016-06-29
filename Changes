@@ -3,6 +3,11 @@ Revision history for {{$dist->name}}
 {{$NEXT}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
 
+    - 
+
+0.901     2016-06-29
+    ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
+
     - Fixed a bug introduced in 0.900 where the auth method call pointed to the
     wrong scope.
 
