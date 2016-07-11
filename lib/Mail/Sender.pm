@@ -1234,7 +1234,7 @@ sub Open {
         my $script = File::Basename::basename($0);
         _print_hdr $s,
             "X-Mailer" =>
-            qq{Perl script "$script"\r\n\tusing Mail::Sender $Mail::Sender::ver by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
+            qq{Perl script "$script"\r\n\tusing Mail::Sender $VERSION by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
             . getusername()
             . qq{"\r\n};
     }
@@ -1516,7 +1516,7 @@ sub OpenMultipart {
         my $script = File::Basename::basename($0);
         _print_hdr $s,
             "X-Mailer" =>
-            qq{Perl script "$script"\r\n\tusing Mail::Sender $Mail::Sender::ver by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
+            qq{Perl script "$script"\r\n\tusing Mail::Sender $VERSION by Jenda Krynicky, Czechlands\r\n\trunning on $local_name ($local_IP)\r\n\tunder account "}
             . getusername()
             . qq{"\r\n};
     }
