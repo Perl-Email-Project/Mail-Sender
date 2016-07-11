@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base 'Exporter';
 
-# no warnings 'uninitialized';
+no warnings 'uninitialized';
 use Carp              ();
 use Encode            ();
 use File::Basename    ();
@@ -15,7 +15,7 @@ use Socket            ();
 use Time::Local       ();
 
 our @EXPORT    = qw();
-our @EXPORT_OK = qw(@error_str GuessCType);
+our @EXPORT_OK = qw(GuessCType);
 
 our $VERSION = '0.902'; # VERSION
 $VERSION = eval $VERSION;

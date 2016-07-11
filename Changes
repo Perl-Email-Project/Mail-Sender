@@ -3,7 +3,11 @@ Revision history for {{$dist->name}}
 {{$NEXT}}
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **
 
-    - Fixed oddity with multiple $VERSION variables.  Thanks @Pavel109. GH #2
+    - Fixed multiple $VERSION variables, GH #2.  Thanks, Pavel.
+    - Addressed some testing issues with bad SMTP host.
+    - Turned off uninitialized warnings until they can all be resolved.
+    - Let DZil version the CType:: classes
+    - Removed unused EXPORT_OK option
 
 0.901     2016-06-29
     ** PLEASE CONSIDER USING EMAIL-SENDER INSTEAD **

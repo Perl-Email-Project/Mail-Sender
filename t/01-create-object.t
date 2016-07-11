@@ -184,7 +184,7 @@ SKIP: {
     isa_ok($s, 'Mail::Sender', 'new: headers default');
     is($s->{headers}, undef, 'headers: set correctly');
 
-    $Mail::Sender::default{smtp} = '  foo.bar.com  ';
+    $Mail::Sender::default{smtp} = '  foo.ba,r.com  ';
     $s = Mail::Sender->new({});
     is($s, -1, 'new: invalid smtp resulting in error code');
 
