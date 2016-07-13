@@ -28,12 +28,11 @@ if ($D eq 'daemon') {
     my $srv = IO::Socket::INET->new(Listen => 1);
     die("Cannot create listener on localhost: $!") unless $srv;
     print $srv->sockhost, ':', $srv->sockport, "\n";
-    my $start = time();
     while (my $conn = $srv->accept) {
-        last if (time()-$start > 5);
         my $smtp = Test::MS_SMTPWithAuth->new(socket => $conn);
         $smtp->process();
         $conn->close();
+        # stop everything if kill:me was supplied via PLAIN
         last if $smtp->killme();
     }
 }
@@ -41,17 +40,18 @@ else {
     my $perl = $Config{'perlpath'};
     $perl = $^X if $^O eq 'VMS' or -x $^X and $^X =~ m,^([a-z]:)?/,i;
     open(my $daemon, "$perl $0 daemon |") or plan(skip_all=>"Can't exec daemon: $!");
+
     my $line = <$daemon>;
     chomp $line;
-    diag $line;
     my ($host, $port) = split /:/, $line, 2;
+
     plan tests => 12;
 
     test_no_auth($host,$port);
     test_login_auth($host,$port);
     test_plain_auth($host,$port);
+    # sending PLAIN user=kill, pass=me to the daemon stops it
     send_killme($host,$port);
-    $daemon->close();
 }
 exit();
 
