@@ -5,6 +5,15 @@ use warnings;
 use Mail::Sender ();
 use Test::More;
 
+can_ok('Mail::Sender',    # The various error message private functions
+    qw(_HOSTNOTFOUND _CONNFAILED _SERVNOTAVAIL _COMMERROR _USERUNKNOWN),
+    qw(_TRANSFAILED _TOEMPTY _NOMSG _NOFILE _FILENOTFOUND _NOTMULTIPART _SITEERROR),
+    qw(_NOTCONNECTED _NOSERVER _NOFROMSPECIFIED _INVALIDAUTH _LOGINERROR _UNKNOWNAUTH),
+    qw(_ALLRECIPIENTSBAD _FILECANTREAD _DEBUGFILE _STARTTLS _IO_SOCKET_SSL),
+    qw(_TLS_UNSUPPORTED_BY_ME _TLS_UNSUPPORTED_BY_SERVER _UNKNOWNENCODING),
+    qw(ClearErrors)
+);
+
 # test error functions
 my ($num, $err);
 
@@ -237,5 +246,20 @@ $num = undef; $err = undef;
 ($num,$err) = Mail::Sender::_UNKNOWNENCODING('crappola');
 is($num, -27, '_UNKNOWNENCODING: proper number');
 is($err, q(Unknown encoding 'crappola'), '_UNKNOWNENCODING: proper string');
+
+{
+    # clear errors
+    %Mail::Sender::default = ();
+    my $s = Mail::Sender->new({});
+    isa_ok($s, 'Mail::Sender', 'new: about to ClearErrors');
+    $Mail::Sender::Error = 'foo';
+    $s->{'error'} = 'stuff';
+    $s->{'error_msg'} = 'things';
+    $s->ClearErrors();
+    is($s->{error}, undef, 'ClearErrors: error attribute undef');
+    is($s->{error_msg}, undef, 'ClearErrors: error_msg attribute undef');
+    is($Mail::Sender::Error, undef, 'ClearErrors: Error global undef');
+}
+
 
 done_testing();

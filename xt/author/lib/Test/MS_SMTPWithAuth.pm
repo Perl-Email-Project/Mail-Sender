@@ -10,9 +10,17 @@ sub init {
     my ( $self, @args ) = @_;
     my $rv = $self->SUPER::init(@args);
     return $rv unless $rv eq $self;
+    $self->{kill} = 0;
     $self->def_verb( EHLO => 'ehlo' );
     $self->def_verb( AUTH => 'auth' );
+    $self->set_callback(RCPT => \&_validate_recipient);
+    $self->set_callback(DATA => \&_queue_message);
+
     return $self;
+}
+
+sub killme {
+    return shift->{kill};
 }
 
 sub get_protoname {
@@ -59,7 +67,41 @@ sub _auth_plain {
         $self->reply(235, 'ok, go ahead (#2.0.0)');
         return;
     }
+    elsif ($creds eq 'AGtpbGwAbWU=') {
+        $self->{kill} = 1;
+        $self->reply(235, 'ok, go ahead (#2.0.0)');
+        return;
+    }
     return ( 535 );
+}
+
+sub _validate_recipient {
+    my ($session, $recipient) = @_;
+    my $domain;
+    if ($recipient =~ /@(.*?)>?\s*$/) {
+        $domain = $1;
+    }
+    if (not defined $domain) {
+        return(0, 513, 'Syntax error.');
+    }
+    unless ($domain eq 'bar.com') {
+        return(0, 554, "$recipient: Recipient address rejected: Relay access denied");
+    }
+    return(1, 250, 'domain accepted');
+}
+
+sub _queue_message {
+    my($session, $data) = @_;
+
+    my $sender = $session->get_sender();
+    my @recipients = $session->get_recipients();
+
+    return(0, 554, 'Error: no valid recipients')
+        unless(@recipients);
+
+    # my $msgid = add_queue($sender, \@recipients, $data) or return(0);
+
+    return(1, 250, "message queued from $sender");
 }
 
 sub auth {

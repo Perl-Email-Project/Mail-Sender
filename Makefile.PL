@@ -29,7 +29,6 @@ my %WriteMakefileArgs = (
     "Symbol" => 0,
     "Tie::Handle" => 0,
     "Time::Local" => 0,
-    "Try::Tiny" => "0.24",
     "base" => 0,
     "strict" => 0,
     "warnings" => 0

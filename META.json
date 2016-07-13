@@ -67,7 +67,6 @@
             "Symbol" : "0",
             "Tie::Handle" : "0",
             "Time::Local" : "0",
-            "Try::Tiny" : "0.24",
             "base" : "0",
             "perl" : "5.008001",
             "strict" : "0",
@@ -132,7 +131,7 @@
             "version" : "6.005"
          },
          {
-            "class" : "Dist::Zilla::Plugin::GatherDir",
+            "class" : "Dist::Zilla::Plugin::Git::GatherDir",
             "config" : {
                "Dist::Zilla::Plugin::GatherDir" : {
                   "exclude_filename" : [
@@ -146,10 +145,13 @@
                   "prefix" : "",
                   "prune_directory" : [],
                   "root" : "."
+               },
+               "Dist::Zilla::Plugin::Git::GatherDir" : {
+                  "include_untracked" : 0
                }
             },
-            "name" : "@Starter/GatherDir",
-            "version" : "6.005"
+            "name" : "Git::GatherDir",
+            "version" : "2.039"
          },
          {
             "class" : "Dist::Zilla::Plugin::PruneCruft",

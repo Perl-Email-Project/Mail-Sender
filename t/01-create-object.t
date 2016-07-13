@@ -5,7 +5,6 @@ use Test::More;
 
 can_ok('Mail::Sender',
     qw(new _initialize _prepare_addresses _prepare_ESMTP _prepare_headers),
-    qw(ClearErrors)
 );
 
 # use actual defaults
@@ -204,21 +203,6 @@ SKIP: {
     $s = Mail::Sender->new({});
     isa_ok($s, 'Mail::Sender', 'new: esmtp default');
     is($s->{esmtp}{ORCPT}, 'rfc822;my.other@address.com', 'esmtp: proper ORCPT');
-
-}
-
-{
-    # clear errors
-    %Mail::Sender::default = ();
-    my $s = Mail::Sender->new({});
-    isa_ok($s, 'Mail::Sender', 'new: about to ClearErrors');
-    $Mail::Sender::Error = 'foo';
-    $s->{'error'} = 'stuff';
-    $s->{'error_msg'} = 'things';
-    $s->ClearErrors();
-    is($s->{error}, undef, 'ClearErrors: error attribute undef');
-    is($s->{error_msg}, undef, 'ClearErrors: error_msg attribute undef');
-    is($Mail::Sender::Error, undef, 'ClearErrors: Error global undef');
 }
 
 done_testing();
