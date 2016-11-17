@@ -220,7 +220,7 @@ __END__
 
 =head1 NAME
 
-Mail::Sender::CType::Ext - Alter how we find the MIME type of a file.
+Mail::Sender::CType::Ext - (DEPRECATED) Alter how we find the MIME type of a file.
 
 =head1 SYNOPSIS
 

@@ -26,7 +26,7 @@ __END__
 
 =head1 NAME
 
-Mail::Sender::CType::Win32 - Alter how we find the MIME type of a file.
+Mail::Sender::CType::Win32 - (DEPRECATED) Alter how we find the MIME type of a file.
 
 =head1 SYNOPSIS
 

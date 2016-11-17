@@ -15,7 +15,6 @@ on 'runtime' => sub {
     requires 'Symbol';
     requires 'Tie::Handle';
     requires 'Time::Local';
-    requires 'Try::Tiny';
     requires 'Win32API::Registry' if $^O eq 'MSWin32';
 
     recommends 'Authen::NTLM';
@@ -27,7 +26,6 @@ on 'runtime' => sub {
 
 on 'test' => sub {
     requires 'Test::More' => '0.88';
-    requires 'Try::Tiny'  => '0.24';
 };
 
 on 'develop' => sub {
