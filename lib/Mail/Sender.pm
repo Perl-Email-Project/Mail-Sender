@@ -17,7 +17,7 @@ use Time::Local       ();
 our @EXPORT    = qw();
 our @EXPORT_OK = qw(GuessCType);
 
-our $VERSION = '0.903'; # VERSION
+our $VERSION = '0.904'; # VERSION
 $VERSION = eval $VERSION;
 
 warnings::warnif('deprecated', 'Mail::Sender is deprecated and you should look to Email::Sender instead');

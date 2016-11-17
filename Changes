@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
     - PLEASE CONSIDER USING EMAIL-SENDER INSTEAD
+
+0.903     2016-11-17
+    - PLEASE CONSIDER USING EMAIL-SENDER INSTEAD
     - Fixed an errant extra test requirement, GH #3.  Thanks, Paul.
     - Marked the entire dist as DEPRECATED as it should no longer be used.
 

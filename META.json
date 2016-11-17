@@ -84,23 +84,23 @@
    "provides" : {
       "Mail::Sender" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.903"
+         "version" : "0.904"
       },
       "Mail::Sender::CType::Ext" : {
          "file" : "lib/Mail/Sender/CType/Ext.pm",
-         "version" : "0.903"
+         "version" : "0.904"
       },
       "Mail::Sender::CType::Win32" : {
          "file" : "lib/Mail/Sender/CType/Win32.pm",
-         "version" : "0.903"
+         "version" : "0.904"
       },
       "Mail::Sender::DBIO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.903"
+         "version" : "0.904"
       },
       "Mail::Sender::IO" : {
          "file" : "lib/Mail/Sender.pm",
-         "version" : "0.903"
+         "version" : "0.904"
       }
    },
    "release_status" : "stable",
@@ -115,7 +115,7 @@
          "web" : "https://github.com/Perl-Email-Project/Mail-Sender"
       }
    },
-   "version" : "0.903",
+   "version" : "0.904",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.024000"
@@ -380,7 +380,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v0.903",
+                  "tag" : "v0.904",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },
