@@ -64,7 +64,6 @@
             "Symbol" : "0",
             "Tie::Handle" : "0",
             "Time::Local" : "0",
-            "Try::Tiny" : "0",
             "base" : "0",
             "perl" : "5.008001",
             "strict" : "0",
