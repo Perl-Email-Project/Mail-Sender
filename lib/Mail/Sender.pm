@@ -17,8 +17,10 @@ use Time::Local       ();
 our @EXPORT    = qw();
 our @EXPORT_OK = qw(GuessCType);
 
-our $VERSION = '0.902'; # VERSION
+our $VERSION = '0.903'; # VERSION
 $VERSION = eval $VERSION;
+
+warnings::warnif('deprecated', 'Mail::Sender is deprecated and you should look to Email::Sender instead');
 
 our $GMTdiff;
 our $Error;
@@ -2392,13 +2394,12 @@ __END__
 
 =head1 NAME
 
-Mail::Sender - module for sending mails with attachments through an SMTP server
+Mail::Sender - (DEPRECATED) module for sending mails with attachments through an SMTP server
 
-=head1 WAIT!  STOP RIGHT THERE!
+=head1 DEPRECATED
 
-L<Mail::Sender> is going away... well, not really, but it's being officially marked as
-"out of favor".  L<Email::Sender> is the go-to choice when you need to send Email
-from Perl.  Go there, be happy!
+L<Mail::Sender> is deprecated. L<Email::Sender> is the go-to choice when you
+need to send Email from Perl.  Go there, be happy!
 
 =head1 SYNOPSIS
 
@@ -2417,11 +2418,10 @@ from Perl.  Go there, be happy!
 
 =head1 DESCRIPTION
 
-L<Mail::Sender> provides an object-oriented interface to sending mails. It directly connects to the mail server using L<IO::Socket>.
+L<Mail::Sender> is deprecated. L<Email::Sender> is the go-to choice when you
+need to send Email from Perl.  Go there, be happy!
 
-L<Mail::Sender> is going away... well, not really, but it's being officially marked as
-"out of favor".  L<Email::Sender> is the go-to choice when you need to send Email
-from Perl.  Go there, be happy!
+L<Mail::Sender> provides an object-oriented interface to sending mails. It directly connects to the mail server using L<IO::Socket>.
 
 =head1 ATTRIBUTES
 

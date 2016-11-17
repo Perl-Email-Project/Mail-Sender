@@ -1,12 +1,11 @@
 # NAME
 
-Mail::Sender - module for sending mails with attachments through an SMTP server
+Mail::Sender - (DEPRECATED) module for sending mails with attachments through an SMTP server
 
-# WAIT!  STOP RIGHT THERE!
+# DEPRECATED
 
-[Mail::Sender](https://metacpan.org/pod/Mail::Sender) is going away... well, not really, but it's being officially marked as
-"out of favor".  [Email::Sender](https://metacpan.org/pod/Email::Sender) is the go-to choice when you need to send Email
-from Perl.  Go there, be happy!
+[Mail::Sender](https://metacpan.org/pod/Mail::Sender) is deprecated. [Email::Sender](https://metacpan.org/pod/Email::Sender) is the go-to choice when you
+need to send Email from Perl.  Go there, be happy!
 
 # SYNOPSIS
 
@@ -25,11 +24,10 @@ from Perl.  Go there, be happy!
 
 # DESCRIPTION
 
-[Mail::Sender](https://metacpan.org/pod/Mail::Sender) provides an object-oriented interface to sending mails. It directly connects to the mail server using [IO::Socket](https://metacpan.org/pod/IO::Socket).
+[Mail::Sender](https://metacpan.org/pod/Mail::Sender) is deprecated. [Email::Sender](https://metacpan.org/pod/Email::Sender) is the go-to choice when you
+need to send Email from Perl.  Go there, be happy!
 
-[Mail::Sender](https://metacpan.org/pod/Mail::Sender) is going away... well, not really, but it's being officially marked as
-"out of favor".  [Email::Sender](https://metacpan.org/pod/Email::Sender) is the go-to choice when you need to send Email
-from Perl.  Go there, be happy!
+[Mail::Sender](https://metacpan.org/pod/Mail::Sender) provides an object-oriented interface to sending mails. It directly connects to the mail server using [IO::Socket](https://metacpan.org/pod/IO::Socket).
 
 # ATTRIBUTES
 

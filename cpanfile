@@ -27,7 +27,6 @@ on 'runtime' => sub {
 
 on 'test' => sub {
     requires 'Test::More' => '0.88';
-    requires 'Try::Tiny'  => '0.24';
 };
 
 on 'develop' => sub {
